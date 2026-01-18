@@ -1,0 +1,96 @@
+﻿@model Traeq.Models.SupportChatViewModel
+
+@{
+    ViewData["Title"] = "Chat";
+    Layout = "~/Views/Shared/DashBoardLayout.cshtml";
+}
+
+<div class="pagetitle">
+    <h1>Pharmacy Support Chat</h1>
+    <nav>
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+                <a asp-area="Pharmacy" asp-controller="Dashboard" asp-action="Index">Dashboard</a>
+            </li>
+            <li class="breadcrumb-item">
+                <a asp-area="Pharmacy" asp-controller="Dashboard" asp-action="MyMessages">My Messages</a>
+            </li>
+            <li class="breadcrumb-item active">Chat</li>
+        </ol>
+    </nav>
+</div>
+
+<section class="section">
+    <div class="row">
+        <div class="col-lg-8">
+
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">@Model.Title</h5>
+                    <p class="text-muted">@Model.SubTitle</p>
+
+                    @if (Model.IsClosed)
+                    {
+                        <span class="badge bg-secondary mb-2">Conversation Closed</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-success mb-2">Open</span>
+                    }
+
+                    <div class="border rounded p-3 mb-3" style="max-height: 400px; overflow-y: auto; background-color:#f8f9fa;">
+                        @if (Model.Messages != null && Model.Messages.Any())
+                        {
+                            foreach (var msg in Model.Messages)
+                            {
+                                var isUser = msg.SenderType == "User";
+                                <div class="d-flex mb-2 @(isUser ? "justify-content-start" : "justify-content-end")">
+                                    <div class="p-2 rounded"
+                                         style="max-width:70%; @(isUser ? "background-color:white;border:1px solid #0d47a1;" : "background-color:#90caf9;color:white;")">
+                                        <div class="small text-muted mb-1">
+                                            @msg.SenderLabel - @msg.SentAt.ToString("yyyy-MM-dd HH:mm")
+                                        </div>
+                                        <div>@msg.MessageText</div>
+                                    </div>
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <p class="text-muted mb-0">No messages yet.</p>
+                        }
+                    </div>
+
+                    @if (!Model.IsClosed)
+                    {
+                        <form asp-area="" asp-controller="Home" asp-action="@Model.SendAction" method="post">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="threadId" value="@Model.ThreadId" />
+                            <div class="mb-3">
+                                <label for="messageText" class="form-label">Your Reply</label>
+                                <textarea class="form-control" id="messageText" name="messageText" rows="3" required></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Send</button>
+                        </form>
+
+                        <form asp-area="" asp-controller="Home" asp-action="@Model.CloseAction" method="post" class="mt-2">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="threadId" value="@Model.ThreadId" />
+                            <button type="submit" class="btn btn-outline-danger btn-sm"
+                                    onclick="return confirm('Are you sure you want to end this conversation?');">
+                                End Conversation
+                            </button>
+                        </form>
+                    }
+                    else
+                    {
+                        <p class="text-muted mt-2">
+                            This conversation is closed. You can still view all messages but cannot reply.
+                        </p>
+                    }
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>

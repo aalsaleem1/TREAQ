@@ -1,0 +1,117 @@
+﻿@model Traeq.DTO.MedicineDetailsViewModel
+@{
+    ViewData["Title"] = Model.MedicineName;
+}
+
+<div class="bg-light py-3">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12 mb-0">
+                <a asp-action="Index" asp-controller="Home">Home</a>
+                <span class="mx-2">/</span>
+                <a asp-action="Stor" asp-controller="Home">Store</a>
+                <span class="mx-2">/</span>
+                <strong class="text-black">@Model.MedicineName</strong>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="site-section">
+    <div class="container">
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                @TempData["Success"]
+                <button type="button" class="close" data-dismiss="alert">
+                    <span>&times;</span>
+                </button>
+            </div>
+        }
+
+        <div class="row">
+            <div class="col-md-5 mr-auto">
+                <div class="border text-center">
+                    <img src="~/@Model.ImageURL"
+                         class="img-fluid p-5"
+                         alt="@Model.MedicineName">
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <h2 class="text-black">@Model.MedicineName</h2>
+
+                @if (!string.IsNullOrEmpty(Model.ScientificName))
+                {
+                    <p class="text-muted">@Model.ScientificName</p>
+                }
+
+                <p>@Model.MedicineDescription</p>
+
+                <p>
+                    <strong class="text-primary h4">
+                        @Model.Price.ToString("C")
+                    </strong>
+                </p>
+
+                <div class="mb-3">
+                    <span class="badge badge-info">@Model.Category</span>
+                    <span class="badge badge-secondary">
+                        Exp: @Model.ExpiryDate.ToString("yyyy-MM-dd")
+                    </span>
+                </div>
+
+                <form asp-action="AddToCart" asp-controller="Cart" asp-area="" method="post">
+                    <input type="hidden" name="medicineId" value="@Model.Id" />
+
+                    <div class="mb-3">
+                        <label for="quantity">Quantity:</label>
+                        <div class="input-group mb-3" style="max-width: 150px;">
+                            <div class="input-group-prepend">
+                                <button class="btn btn-outline-primary" type="button" onclick="decrementQuantity()">−</button>
+                            </div>
+                            <input type="number"
+                                   class="form-control text-center"
+                                   id="quantity"
+                                   name="quantity"
+                                   value="1"
+                                   min="1"
+                                   max="@Model.Quantity">
+                            <div class="input-group-append">
+                                <button class="btn btn-outline-primary" type="button" onclick="incrementQuantity()">+</button>
+                            </div>
+                        </div>
+                        <small class="text-muted">In Stock: @Model.Quantity</small>
+                    </div>
+
+                    <p>
+                        <button type="submit" class="btn btn-sm px-4 py-3 btn-primary">
+                            <i class="fas fa-shopping-cart"></i> Add to Cart
+                        </button>
+                    </p>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function incrementQuantity() {
+            var input = document.getElementById('quantity');
+            var max = parseInt(input.getAttribute('max'));
+            var current = parseInt(input.value);
+            if (current < max) {
+                input.value = current + 1;
+            }
+        }
+
+        function decrementQuantity() {
+            var input = document.getElementById('quantity');
+            var current = parseInt(input.value);
+            if (current > 1) {
+                input.value = current - 1;
+            }
+        }
+    </script>
+}

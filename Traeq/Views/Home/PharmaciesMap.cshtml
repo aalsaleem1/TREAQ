@@ -1,0 +1,178 @@
+﻿@model IEnumerable<Traeq.DTO.PharmacyMapItemDTO>
+@{
+    ViewData["Title"] = "Pharmacies Map";
+    var cities = Model
+        .Where(p => p.City != null)
+        .Select(p => p.City!)
+        .Distinct()
+        .OrderBy(c => c)
+        .ToList();
+}
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+    #pharmaciesMap {
+        height: 500px;
+        width: 100%;
+        border-radius: 12px;
+        border: 1px solid #ddd;
+    }
+</style>
+
+<div class="bg-light py-3">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12 mb-0">
+                <a asp-action="Index" asp-controller="Home">Home</a>
+                <span class="mx-2">/</span>
+                <strong class="text-black">Pharmacies Map</strong>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="site-section">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h2 class="mb-0">Registered Pharmacies</h2>
+
+            <div class="d-flex align-items-center">
+                <label class="me-2 mb-0 fw-bold">City:</label>
+                <select id="cityFilter" class="form-select form-select-sm" style="width: 200px;">
+                    <option value="">All Cities</option>
+                    @foreach (var c in cities)
+                    {
+                        <option value="@c">@c</option>
+                    }
+                </select>
+            </div>
+        </div>
+
+        <div id="pharmaciesMap"></div>
+    </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var map = L.map('pharmaciesMap').setView([31.9539, 35.9106], 7);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+
+        var pharmacies = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model));
+
+        console.log('pharmacies JSON:', pharmacies);
+        console.log('first pharmacy:', pharmacies[0]);
+
+        var markersLayer = L.layerGroup().addTo(map);
+        var markers = [];
+
+        function clearMarkers() {
+            markersLayer.clearLayers();
+            markers = [];
+        }
+
+        function addMarkers(filtered) {
+            clearMarkers();
+
+            filtered.forEach(function (p) {
+                if (!p.Latitude || !p.Longitude) return; 
+
+                var lat = p.Latitude;
+                var lng = p.Longitude;
+
+                var marker = L.marker([lat, lng]).addTo(markersLayer);
+
+                var googleUrl = 'https://www.google.com/maps?q=' + lat + ',' + lng;
+                var cityText = p.City ? ('<br/><small class="text-muted">City: ' + p.City + '</small>') : '';
+
+                console.log('details url:', p.DetailsUrl);
+
+                var popupHtml = `
+                    <div>
+                        <strong>${p.PharmacyName ?? 'Pharmacy'}</strong>${cityText}<br/>
+                        ${p.OwnerName ? ('Owner: ' + p.OwnerName + '<br/>') : ''}
+                        <a href="${p.DetailsUrl}" class="btn btn-sm btn-primary mt-2">Pharmacy Details</a>
+                        <a href="${googleUrl}" target="_blank" class="btn btn-sm btn-outline-secondary mt-2 ms-1">Open in Google Maps</a>
+                    </div>
+                `;
+
+                marker.bindPopup(popupHtml);
+                markers.push(marker);
+            });
+
+            if (markers.length > 0) {
+                var group = new L.featureGroup(markers);
+                map.fitBounds(group.getBounds().pad(0.2));
+            }
+        }
+
+        addMarkers(pharmacies);
+
+        document.getElementById('cityFilter').addEventListener('change', function () {
+            var selectedCity = this.value;
+            var filtered = pharmacies;
+
+            if (selectedCity) {
+                filtered = pharmacies.filter(function (p) {
+                    return p.City && p.City.toLowerCase() === selectedCity.toLowerCase();
+                });
+            }
+
+            addMarkers(filtered);
+        });
+
+        function toRad(x) {
+            return x * Math.PI / 180;
+        }
+
+        function distanceKm(lat1, lon1, lat2, lon2) {
+            var R = 6371;
+            var dLat = toRad(lat2 - lat1);
+            var dLon = toRad(lon2 - lon1);
+            var a =
+                Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+                Math.sin(dLon / 2) * Math.sin(dLon / 2);
+
+            var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            return R * c;
+        }
+
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(function (pos) {
+                var userLat = pos.coords.latitude;
+                var userLng = pos.coords.longitude;
+
+                var nearest = null;
+                var minDist = Number.MAX_VALUE;
+
+                pharmacies.forEach(function (p) {
+                    if (!p.Latitude || !p.Longitude) return;
+                    var d = distanceKm(userLat, userLng, p.Latitude, p.Longitude);
+                    if (d < minDist) {
+                        minDist = d;
+                        nearest = p;
+                    }
+                });
+
+                if (nearest) {
+                    map.setView([nearest.Latitude, nearest.Longitude], 14);
+
+                    var targetMarker = markers.find(function (m) {
+                        var ll = m.getLatLng();
+                        return Math.abs(ll.lat - nearest.Latitude) < 0.0001 &&
+                               Math.abs(ll.lng - nearest.Longitude) < 0.0001;
+                    });
+
+                    if (targetMarker) {
+                        targetMarker.openPopup();
+                    }
+                }
+            }, function () {});
+        }
+    });
+</script>
+

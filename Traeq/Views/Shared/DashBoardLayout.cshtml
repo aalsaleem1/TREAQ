@@ -1,0 +1,360 @@
+﻿@using Microsoft.AspNetCore.Identity
+@using Microsoft.EntityFrameworkCore
+@inject UserManager<Traeq.Models.User> UserManager
+@{
+    var user = await UserManager.GetUserAsync(User);
+    string welcomeText = "TREAQ System";
+    if (user != null)
+    {
+        welcomeText = $"Welcome, {User.Identity.Name}";
+    }
+
+    var currentArea = ViewContext.RouteData.Values["area"]?.ToString();
+    var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
+
+    var dbContext = Context.RequestServices.GetService(typeof(Traeq.Data.AppDbContext)) as Traeq.Data.AppDbContext;
+    var currentUserId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>@ViewData["Title"] - Dashboard</title>
+
+    <link href="https://fonts.gstatic.com" rel="preconnect">
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,600,600i,700,700i|Nunito:300,300i,400,400i,600,600i,700,700i|Poppins:300,300i,400,400i,500,500i,600,600i,700,700i" rel="stylesheet">
+    <link href="~/Admin/assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="~/Admin/assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
+    <link href="~/Admin/assets/vendor/boxicons/css/boxicons.min.css" rel="stylesheet">
+    <link href="~/Admin/assets/vendor/quill/quill.snow.css" rel="stylesheet">
+    <link href="~/Admin/assets/vendor/quill/quill.bubble.css" rel="stylesheet">
+    <link href="~/Admin/assets/vendor/remixicon/remixicon.css" rel="stylesheet">
+    <link href="~/Admin/assets/vendor/simple-datatables/style.css" rel="stylesheet">
+    <link href="~/Admin/assets/css/style.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+
+    <style>
+        .sidebar-nav .nav-link.collapsed {
+            color: #012970;
+            background: #fff;
+        }
+
+        .sidebar-nav .nav-link {
+            color: #4154f1;
+            background: #f6f9ff;
+        }
+
+            .sidebar-nav .nav-link i {
+                font-size: 16px;
+                margin-right: 10px;
+                color: #4154f1;
+            }
+
+            .sidebar-nav .nav-link.collapsed i {
+                color: #899bbd;
+            }
+
+        .logout-btn {
+            border: none;
+            background: none;
+            width: 100%;
+            text-align: left;
+        }
+
+            .logout-btn:hover {
+                background-color: #f6f9ff;
+                color: #4154f1;
+            }
+    </style>
+</head>
+
+<body>
+    <header id="header" class="header fixed-top d-flex align-items-center">
+        <div class="d-flex align-items-center justify-content-between">
+            <a href="#" class="logo d-flex align-items-center" style="width: auto;">
+                <span class="d-none d-lg-block">@welcomeText</span>
+            </a>
+            <i class="bi bi-list toggle-sidebar-btn"></i>
+        </div>
+
+        <nav class="header-nav ms-auto">
+            <ul class="d-flex align-items-center">
+
+                <li class="nav-item me-3">
+                    @if (User.IsInRole("Admin"))
+                    {
+                        <form method="get"
+                              asp-area="Admin"
+                              asp-controller="User"
+                              asp-action="Search"
+                              class="d-flex">
+                            <input type="text" name="term" class="form-control form-control-sm" placeholder="Search users..." />
+                            <button type="submit" class="btn btn-sm btn-outline-secondary ms-1">
+                                <i class="bi bi-search"></i>
+                            </button>
+                        </form>
+                    }
+                    else if (User.IsInRole("Pharmacy"))
+                    {
+                        <form method="get"
+                              asp-area="Pharmacy"
+                              asp-controller="Medicines"
+                              asp-action="Index"
+                              class="d-flex">
+                            <input type="text" name="search" class="form-control form-control-sm" placeholder="Search..." />
+                            <button type="submit" class="btn btn-sm btn-outline-secondary ms-1">
+                                <i class="bi bi-search"></i>
+                            </button>
+                        </form>
+                    }
+                    else
+                    {
+                        <form method="get" asp-area="" asp-controller="Home" asp-action="Search" class="d-flex">
+                            <input type="text" name="query" class="form-control form-control-sm" placeholder="Search..." />
+                            <button type="submit" class="btn btn-sm btn-outline-secondary ms-1">
+                                <i class="bi bi-search"></i>
+                            </button>
+                        </form>
+                    }
+                </li>
+
+                @if (User.Identity.IsAuthenticated && User.IsInRole("Pharmacy") && dbContext != null && currentUserId != null)
+                {
+                    var pharmacyEntity = await dbContext.PharmacyLegalInfos
+                    .Include(p => p.User)
+                    .FirstOrDefaultAsync(p =>
+                    p.UserId == currentUserId ||
+                    dbContext.Users.Any(u => u.Id == currentUserId && u.PharmacyId == p.Id));
+
+                    int openThreadsCount = 0;
+
+                    if (pharmacyEntity != null)
+                    {
+                        openThreadsCount = await dbContext.PharmacySupportThreads
+                        .CountAsync(t => t.PharmacyId == pharmacyEntity.Id && !t.IsClosed);
+                    }
+
+                    <li class="nav-item dropdown me-3">
+                        <a class="nav-link nav-icon" href="#" data-bs-toggle="dropdown">
+                            <i class="bi bi-chat-dots"></i>
+                            @if (openThreadsCount > 0)
+                            {
+                                <span class="badge bg-danger badge-number">@openThreadsCount</span>
+                            }
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow notifications">
+                            <li class="dropdown-header">
+                                Pharmacy Messages
+                                @if (openThreadsCount > 0)
+                                {
+                                    <span class="badge bg-primary ms-2">@openThreadsCount open</span>
+                                }
+                            </li>
+                            <li><hr class="dropdown-divider" /></li>
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center"
+                                   asp-area="Pharmacy"
+                                   asp-controller="Dashboard"
+                                   asp-action="MyMessages">
+                                    <i class="bi bi-inbox me-2"></i>
+                                    <span>View My Messages</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                }
+
+                @if (User.Identity.IsAuthenticated)
+                {
+                    <li class="nav-item dropdown pe-3">
+                        <a class="nav-link nav-profile d-flex align-items-center pe-0" href="#" data-bs-toggle="dropdown">
+                            @if (user != null && !string.IsNullOrEmpty(user.ImageUrl))
+                            {
+                                <img src="~/@user.ImageUrl" alt="Profile" class="rounded-circle" style="width:36px;height:36px;object-fit:cover;">
+                            }
+                            else
+                            {
+                                <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" style="width:36px;height:36px;">
+                                    <i class="bi bi-person"></i>
+                                </div>
+                            }
+                            <span class="d-none d-md-block dropdown-toggle ps-2">@User.Identity.Name</span>
+                        </a>
+
+                        <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow profile">
+                            <li class="dropdown-header">
+                                <h6>@User.Identity.Name</h6>
+                                <span>@(user?.AccountType ?? "User")</span>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+
+                            @if (user != null && user.PharmacyId == null && !User.IsInRole("Admin"))
+                            {
+                                <li>
+                                    <a class="dropdown-item d-flex align-items-center" asp-area="" asp-controller="User" asp-action="Profile">
+                                        <i class="bi bi-person"></i>
+                                        <span>My Profile</span>
+                                    </a>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                            }
+
+                            <li>
+                                <form asp-area="" asp-controller="User" asp-action="Logout" method="post" style="margin:0;padding:0;">
+                                    <button type="submit" class="dropdown-item d-flex align-items-center logout-btn">
+                                        <i class="bi bi-box-arrow-right"></i>
+                                        <span>Sign Out</span>
+                                    </button>
+                                </form>
+                            </li>
+                        </ul>
+                    </li>
+                }
+            </ul>
+        </nav>
+    </header>
+
+    <aside id="sidebar" class="sidebar">
+        <ul class="sidebar-nav" id="sidebar-nav">
+
+            @if (User.IsInRole("Admin"))
+            {
+                <li class="nav-heading">Administration</li>
+
+                <li class="nav-item">
+                    <a class="nav-link @(ViewContext.RouteData.Values["Action"]?.ToString() == "Index" && ViewContext.RouteData.Values["Controller"]?.ToString() == "User" ? "" : "collapsed")" asp-area="Admin" asp-controller="User" asp-action="Index">
+                        <i class="bi bi-grid"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link collapsed" data-bs-target="#messages-nav" data-bs-toggle="collapse" href="#">
+                        <i class="bi bi-envelope"></i><span>Messages</span><i class="bi bi-chevron-down ms-auto"></i>
+                    </a>
+                    <ul id="messages-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav">
+                        <li>
+                            <a asp-area="Admin" asp-controller="User" asp-action="SiteMessages">
+                                <i class="bi bi-circle"></i><span>Site Messages</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a asp-area="Admin" asp-controller="User" asp-action="OrderMessages">
+                                <i class="bi bi-circle"></i><span>Order Messages</span>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link @(ViewContext.RouteData.Values["Action"]?.ToString() == "CreateAdmin" ? "" : "collapsed")" asp-area="Admin" asp-controller="User" asp-action="CreateAdmin">
+                        <i class="bi bi-person-plus-fill"></i>
+                        <span>Add New Admin</span>
+                    </a>
+                </li>
+            }
+
+            @if (User.IsInRole("Pharmacy"))
+            {
+                <li class="nav-heading">Pharmacy Management</li>
+                <li class="nav-item">
+                    <a class="nav-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Dashboard" ? "" : "collapsed")" asp-area="Pharmacy" asp-controller="Dashboard" asp-action="Index">
+                        <i class="bi bi-grid"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Medicines" && ViewContext.RouteData.Values["Action"]?.ToString() == "Index" ? "" : "collapsed")" asp-area="Pharmacy" asp-controller="Medicines" asp-action="Index">
+                        <i class="bi bi-capsule"></i>
+                        <span>Medicines</span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link collapsed" data-bs-target="#orders-nav" data-bs-toggle="collapse" href="#">
+                        <i class="bi bi-basket"></i><span>Orders</span><i class="bi bi-chevron-down ms-auto"></i>
+                    </a>
+                    <ul id="orders-nav" class="nav-content collapse " data-bs-parent="#sidebar-nav">
+                        <li>
+                            <a asp-area="Pharmacy" asp-controller="Orders" asp-action="Index">
+                                <i class="bi bi-circle"></i><span>All Orders</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a asp-area="Pharmacy" asp-controller="Orders" asp-action="Pending">
+                                <i class="bi bi-circle"></i><span>Pending Orders</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a asp-area="Pharmacy" asp-controller="Orders" asp-action="Current">
+                                <i class="bi bi-circle"></i><span>Current Orders</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a asp-area="Pharmacy" asp-controller="Orders" asp-action="Past">
+                                <i class="bi bi-circle"></i><span>Past Orders</span>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+
+                @if (user != null && (user.PharmacyId == null || user.CanAddMedicine))
+                {
+                    <li class="nav-item">
+                        <a class="nav-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Medicines" && ViewContext.RouteData.Values["Action"]?.ToString() == "Create" ? "" : "collapsed")" asp-area="Pharmacy" asp-controller="Medicines" asp-action="Create">
+                            <i class="bi bi-plus-circle"></i>
+                            <span>Add Medicine</span>
+                        </a>
+                    </li>
+                }
+
+                @if (user != null && user.PharmacyId == null)
+                {
+                    <li class="nav-item">
+                        <a class="nav-link @(ViewContext.RouteData.Values["Action"]?.ToString() == "Employees" ? "" : "collapsed")" asp-area="Pharmacy" asp-controller="Dashboard" asp-action="Employees">
+                            <i class="bi bi-people"></i>
+                            <span>Employees</span>
+                        </a>
+                    </li>
+                }
+
+                @if (user != null)
+                {
+                    <li class="nav-item">
+                        <a class="nav-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "PromoCodes" ? "" : "collapsed")"
+                           asp-area="Pharmacy" asp-controller="PromoCodes" asp-action="Index">
+                            <i class="bi bi-ticket-perforated"></i>
+                            <span>Promo Codes</span>
+                        </a>
+                    </li>
+                }
+            }
+        </ul>
+    </aside>
+
+    <main id="main" class="main">
+        @RenderBody()
+    </main>
+
+    <footer id="footer" class="footer">
+        <div class="copyright">
+            &copy; Copyright <strong><span>TREAQ</span></strong>. All Rights Reserved
+        </div>
+    </footer>
+
+    <a href="#" class="back-to-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>
+
+    <script src="~/Admin/assets/vendor/apexcharts/apexcharts.min.js"></script>
+    <script src="~/Admin/assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="~/Admin/assets/vendor/quill/quill.min.js"></script>
+    <script src="~/Admin/assets/vendor/simple-datatables/simple-datatables.js"></script>
+    <script src="~/Admin/assets/vendor/tinymce/tinymce.min.js"></script>
+    <script src="~/Admin/assets/vendor/php-email-form/validate.js"></script>
+    <script src="~/Admin/assets/js/main.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.js"></script>
+    @RenderSection("Scripts", required: false)
+</body>
+</html>

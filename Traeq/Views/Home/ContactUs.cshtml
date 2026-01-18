@@ -1,0 +1,225 @@
+﻿@{
+    ViewData["Title"] = "Contact Us";
+}
+
+<div class="bg-light py-3">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12 mb-0">
+                <a asp-action="Index" asp-controller="Home" asp-area="">Home</a>
+                <span class="mx-2 mb-0">/</span>
+                <strong class="text-black">Contact Us</strong>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="site-section">
+    <div class="container">
+        <div class="row mb-4">
+            <div class="col-md-12 text-center">
+                <h2 class="text-black">Contact Support</h2>
+                <p class="lead text-muted">Choose the type of support you need.</p>
+
+                @if (TempData["ContactSuccess"] != null)
+                {
+                    <div class="alert alert-success">@TempData["ContactSuccess"]</div>
+                }
+                @if (TempData["ContactError"] != null)
+                {
+                    <div class="alert alert-danger">@TempData["ContactError"]</div>
+                }
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- Order Support (Admin) -->
+            <div class="col-md-4 mb-4">
+                <div class="border p-4 h-100">
+                    <h4 class="text-black mb-3">Order Support (Admin)</h4>
+                    <p class="text-muted">
+                        If you have an issue with a specific order and want to contact the platform admin.
+                    </p>
+
+                    <form asp-area="" asp-controller="Home" asp-action="ContactUs" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="supportType" value="order" />
+
+                        <div class="form-group mb-3">
+                            <label for="orderId_admin" class="form-label text-uppercase small text-muted mb-1">Order Number</label>
+                            <input type="number"
+                                   class="form-control"
+                                   id="orderId_admin"
+                                   name="orderId"
+                                   placeholder="Enter your order number"
+                                   required />
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100">Start Admin Order Support</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Order Support (Pharmacy) -->
+            <div class="col-md-4 mb-4">
+                <div class="border p-4 h-100">
+                    <h4 class="text-black mb-3">Order Support (Pharmacy)</h4>
+                    <p class="text-muted">
+                        Chat directly with a pharmacy about an order or a general question.
+                    </p>
+
+                    <form asp-area="" asp-controller="Home" asp-action="ContactUs" method="post" id="pharmacy-support-form">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="supportType" value="pharmacy" />
+
+                        <div class="mb-3">
+                            <label class="form-label text-uppercase small text-muted mb-2">Support Type</label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="pharmacySupportMode" id="phModeOrder" value="order">
+                                <label class="form-check-label" for="phModeOrder">
+                                    Question about an existing order
+                                </label>
+                            </div>
+                            <div class="form-check mt-1">
+                                <input class="form-check-input" type="radio" name="pharmacySupportMode" id="phModeGeneral" value="general">
+                                <label class="form-check-label" for="phModeGeneral">
+                                    General question to a pharmacy
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="form-group mb-3" id="pharmacy-order-number-group" style="display:none;">
+                            <label for="orderId_pharmacy" class="form-label text-uppercase small text-muted mb-1">Order Number</label>
+                            <input type="number"
+                                   class="form-control"
+                                   id="orderId_pharmacy"
+                                   name="orderId"
+                                   placeholder="Enter your order number" />
+                        </div>
+
+                        <div class="form-group mb-2" id="pharmacy-select-group" style="display:none;">
+                            <label class="form-label text-uppercase small text-muted mb-1">Select Pharmacy</label>
+                            <div class="mb-2">
+                                <input type="text" class="form-control" id="pharmacySearch" placeholder="Search pharmacy by name..." />
+                            </div>
+                            <select class="form-control" id="pharmacySelect" name="pharmacyId">
+                                <option value="">-- Select Pharmacy --</option>
+                            </select>
+                        </div>
+
+                        <button type="submit" class="btn btn-info text-white w-100 mt-3">Start Pharmacy Chat</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Site / General Support -->
+            <div class="col-md-4 mb-4">
+                <div class="border p-4 h-100">
+                    <h4 class="text-black mb-3">Site / General Support</h4>
+                    <p class="text-muted">
+                        If you have an issue with the website or a general question, please fill in the form below.
+                    </p>
+
+                    <form asp-area="" asp-controller="Home" asp-action="ContactUs" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="supportType" value="site" />
+
+                        <div class="form-row">
+                            <div class="form-group col-md-6 mb-3">
+                                <label for="nameFirst" class="form-label">First Name</label>
+                                <input type="text" class="form-control" id="nameFirst" name="nameFirst" required />
+                            </div>
+                            <div class="form-group col-md-6 mb-3">
+                                <label for="nameLast" class="form-label">Last Name</label>
+                                <input type="text" class="form-control" id="nameLast" name="nameLast" />
+                            </div>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label for="email" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="email" name="email" required />
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label for="phone" class="form-label">Phone (optional)</label>
+                            <input type="text" class="form-control" id="phone" name="phone" />
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label for="subject" class="form-label">Subject</label>
+                            <input type="text" class="form-control" id="subject" name="subject" />
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label for="message" class="form-label">Message</label>
+                            <textarea class="form-control" id="message" name="message" rows="5" required></textarea>
+                        </div>
+
+                        <button type="submit" class="btn btn-success w-100">Send Message</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script>
+        function togglePharmacySupportFields() {
+            var mode = $('input[name="pharmacySupportMode"]:checked').val();
+            if (mode === 'order') {
+                $('#pharmacy-order-number-group').show();
+                $('#orderId_pharmacy').prop('required', true);
+
+                $('#pharmacy-select-group').hide();
+                $('#pharmacySelect').prop('required', false);
+            } else if (mode === 'general') {
+                $('#pharmacy-order-number-group').hide();
+                $('#orderId_pharmacy').prop('required', false);
+
+                $('#pharmacy-select-group').show();
+                $('#pharmacySelect').prop('required', true);
+            } else {
+                $('#pharmacy-order-number-group').hide();
+                $('#orderId_pharmacy').prop('required', false);
+                $('#pharmacy-select-group').hide();
+                $('#pharmacySelect').prop('required', false);
+            }
+        }
+
+        $('input[name="pharmacySupportMode"]').on('change', togglePharmacySupportFields);
+        togglePharmacySupportFields();
+
+        var allPharmacies = [];
+
+        function loadPharmacies() {
+            $.getJSON('@Url.Action("GetPharmaciesForSupport", "Home", new { area = "" })', function (data) {
+                allPharmacies = data || [];
+                renderPharmacyOptions('');
+            });
+        }
+
+        function renderPharmacyOptions(filter) {
+            var select = $('#pharmacySelect');
+            select.empty();
+            select.append('<option value="">-- Select Pharmacy --</option>');
+
+            var filtered = allPharmacies.filter(function (p) {
+                if (!filter) return true;
+                return p.name.toLowerCase().indexOf(filter.toLowerCase()) !== -1;
+            });
+
+            filtered.forEach(function (p) {
+                select.append('<option value="' + p.id + '">' + p.name + '</option>');
+            });
+        }
+
+        $('#pharmacySearch').on('input', function () {
+            var val = $(this).val();
+            renderPharmacyOptions(val);
+        });
+
+        loadPharmacies();
+    </script>
+}

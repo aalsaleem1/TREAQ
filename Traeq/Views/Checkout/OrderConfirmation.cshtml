@@ -1,0 +1,287 @@
+﻿@model Traeq.Models.Order
+
+@{
+    ViewData["Title"] = "Order Confirmation";
+    var nowUtc = DateTime.UtcNow;
+    var cancelUntilUtc = Model.CancelAllowedUntil.ToUniversalTime();
+    var remainingSeconds = (int)(cancelUntilUtc - nowUtc).TotalSeconds;
+    if (remainingSeconds < 0) { remainingSeconds = 0; }
+}
+
+<div class="bg-light py-3">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12 mb-0">
+                <a asp-action="Index" asp-controller="Home" asp-area="">Home</a>
+                <span class="mx-2 mb-0">/</span>
+                <strong class="text-black">Order Confirmed</strong>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="site-section">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12 text-center">
+                <span class="icon-check_circle display-3 text-success"></span>
+                <h2 class="display-3 text-black">Thank you!</h2>
+                <p class="lead mb-2">Your order was successfully completed.</p>
+
+                @if (!Model.IsCanceled && Model.OrderStatus == "Pending" && remainingSeconds > 0)
+                {
+                    <p class="text-danger fw-bold" id="cancelNote">
+                        You can cancel this order within the next
+                        <span id="cancelTimer"></span>.
+                    </p>
+                }
+                else if (!Model.IsCanceled && Model.OrderStatus == "Pending" && remainingSeconds <= 0)
+                {
+                    <p class="text-muted fw-bold" id="cancelNoteExpired">
+                        The cancellation time has expired. If there is any issue with your current order,
+                        please contact our technical support from the Contact Us page at the top.
+                    </p>
+                }
+                else if (Model.IsCanceled)
+                {
+                    <p class="text-danger fw-bold">
+                        This order has been canceled.
+                    </p>
+                }
+
+                <div id="cancelMessageContainer"></div>
+            </div>
+        </div>
+
+        <div class="row mb-5">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        Order Tracking - #@Model.Id
+                    </div>
+                    <div class="card-body">
+                        <div class="progress mb-3" style="height: 30px;">
+                            @{
+                                var width = "0%";
+                                var statusClass = "bg-warning";
+                                var statusText = Model.OrderStatus;
+
+                                if (Model.OrderStatus == "Pending") { width = "25%"; }
+                                else if (Model.OrderStatus == "Accepted") { width = "50%"; statusClass = "bg-info"; }
+                                else if (Model.OrderStatus == "Ready" || Model.OrderStatus == "OutForDelivery") { width = "75%"; statusClass = "bg-primary"; }
+                                else if (Model.OrderStatus == "Completed") { width = "100%"; statusClass = "bg-success"; }
+                                else if (Model.OrderStatus == "Rejected") { width = "100%"; statusClass = "bg-danger"; }
+                            }
+                            <div class="progress-bar progress-bar-striped progress-bar-animated @statusClass"
+                                 role="progressbar" style="width: @width">
+                                @statusText
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between small text-muted">
+                            <span>Pending</span>
+                            <span>Accepted</span>
+                            <span>Out for Delivery</span>
+                            <span>Completed</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-md-12 text-center">
+                @if (!Model.IsCanceled && Model.OrderStatus == "Pending")
+                {
+                    <form class="d-inline" id="cancelForm">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" id="orderId" value="@Model.Id" />
+                        <button type="button" class="btn btn-outline-danger btn-lg" id="cancelButton">
+                            Cancel Order
+                        </button>
+                    </form>
+                }
+                else
+                {
+                    <a asp-area="" asp-controller="Home" asp-action="ContactUs" class="btn btn-outline-primary btn-lg">
+                        Contact Technical Support
+                    </a>
+                }
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-12">
+                <div class="p-3 p-lg-5 border">
+                    <h3 class="mb-3 text-black">Order Details</h3>
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th>Quantity</th>
+                                <th>Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model.OrderItems)
+                            {
+                                <tr>
+                                    <td>@item.Medicine.MedicineName</td>
+                                    <td>@item.Quantity</td>
+                                    <td>@((item.UnitPrice * item.Quantity).ToString("N2")) JOD</td>
+                                </tr>
+                            }
+                            <tr>
+                                <td colspan="2"><strong>Subtotal</strong></td>
+                                <td><strong>@Model.Subtotal.ToString("N2") JOD</strong></td>
+                            </tr>
+                            <tr>
+                                <td colspan="2"><strong>Discount</strong></td>
+                                <td class="text-success"><strong>-@Model.DiscountAmount.ToString("N2") JOD</strong></td>
+                            </tr>
+                            <tr>
+                                <td colspan="2"><strong>Total Amount</strong></td>
+                                <td><strong>@Model.TotalAmount.ToString("N2") JOD</strong></td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+
+                    <div class="row mt-4">
+                        <div class="col-md-6">
+                            <h5>Delivery Info</h5>
+                            <p>
+                                <strong>Method:</strong> @Model.DeliveryMethod <br />
+                                @if (Model.DeliveryMethod == "Delivery")
+                                {
+                                    <span>
+                                        <strong>Address:</strong> @Model.ShippingCity, @Model.ShippingDistrict <br />
+                                        @Model.ShippingAddressDetails <br />
+                                        <strong>Phone:</strong> @Model.ShippingPhoneNumber
+                                    </span>
+                                }
+                            </p>
+                        </div>
+                        <div class="col-md-6 text-right">
+                            <p>
+                                <a asp-action="Index" asp-controller="Home" asp-area="" class="btn btn-primary btn-lg">Continue Shopping</a>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            (function () {
+                var remaining = @remainingSeconds;
+
+                var timerSpan = document.getElementById("cancelTimer");
+                var cancelButton = document.getElementById("cancelButton");
+                var cancelForm = document.getElementById("cancelForm");
+                var orderIdInput = document.getElementById("orderId");
+                var messageContainer = document.getElementById("cancelMessageContainer");
+
+                function formatTime(seconds) {
+                    var m = Math.floor(seconds / 60);
+                    var s = seconds % 60;
+                    return m.toString().padStart(2, '0') + ":" + s.toString().padStart(2, '0');
+                }
+
+                function updateTimer() {
+                    if (!timerSpan || !cancelButton) {
+                        return;
+                    }
+
+                    if (remaining <= 0) {
+                        timerSpan.innerText = "00:00";
+                        cancelButton.disabled = true;
+                        cancelButton.classList.remove("btn-outline-danger");
+                        cancelButton.classList.add("btn-outline-secondary");
+                        cancelButton.innerText = "Cancellation time expired";
+
+                        var note = document.getElementById("cancelNote");
+                        if (note) {
+                            note.classList.remove("text-danger");
+                            note.classList.add("text-muted");
+                            note.innerText = "The cancellation time has expired. If there is any issue with your current order, please contact our technical support from the Contact Us page at the top.";
+                        }
+
+                        clearInterval(intervalId);
+                        return;
+                    }
+
+                    timerSpan.innerText = formatTime(remaining);
+                    remaining--;
+                }
+
+                var intervalId = null;
+
+                if (timerSpan && cancelButton) {
+                    updateTimer();
+                    intervalId = setInterval(updateTimer, 1000);
+                }
+
+                if (cancelButton && cancelForm && orderIdInput) {
+                    cancelButton.addEventListener("click", function () {
+                        if (remaining <= 0) {
+                            alert("The cancellation time has expired. Please contact technical support from the Contact Us page.");
+                            return;
+                        }
+
+                        var confirmCancel = confirm("Are you sure you want to cancel this order?");
+                        if (!confirmCancel) {
+                            return;
+                        }
+
+                        var orderId = orderIdInput.value;
+                        var tokenInput = cancelForm.querySelector('input[name="__RequestVerificationToken"]');
+                        var token = tokenInput ? tokenInput.value : "";
+
+                        fetch('/Orders/Cancel', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
+                            },
+                            body: '__RequestVerificationToken=' + encodeURIComponent(token) +
+                                  '&id=' + encodeURIComponent(orderId)
+                        })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success) {
+                                    if (messageContainer) {
+                                        messageContainer.innerHTML = '';
+                                        var msgDiv = document.createElement('div');
+                                        msgDiv.className = 'alert alert-success mt-2';
+                                        msgDiv.innerText = data.message;
+                                        messageContainer.appendChild(msgDiv);
+                                    }
+
+                                    if (cancelButton) {
+                                        cancelButton.disabled = true;
+                                        cancelButton.classList.remove("btn-outline-danger");
+                                        cancelButton.classList.add("btn-outline-secondary");
+                                        cancelButton.innerText = "Order canceled";
+                                    }
+
+                                    setTimeout(function () {
+                                        window.location.href = '@Url.Action("Index", "Home", new { area = "" })';
+                                    }, 3000);
+                                } else {
+                                    alert(data.message || "Unable to cancel the order.");
+                                }
+                            })
+                            .catch(err => {
+                                console.error(err);
+                                alert("An error occurred while canceling the order.");
+                            });
+                    });
+                }
+            })();
+        });
+    </script>
+}

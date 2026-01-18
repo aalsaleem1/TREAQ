@@ -1,0 +1,94 @@
+﻿@model Traeq.Models.Order
+@{
+    ViewData["Title"] = "Order Details";
+}
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+<div class="site-section">
+    <div class="container">
+        <div class="row mb-5">
+            <div class="col-md-12">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-primary text-white">Order Tracking #@Model.Id</div>
+                    <div class="card-body">
+                        <div class="progress mb-3" style="height: 30px;">
+                            @{
+                                var width = "0%";
+                                var statusClass = "bg-warning";
+                                if (Model.OrderStatus == "Pending") { width = "25%"; }
+                                else if (Model.OrderStatus == "Accepted") { width = "50%"; statusClass = "bg-info"; }
+                                else if (Model.OrderStatus == "Ready" || Model.OrderStatus == "OutForDelivery") { width = "75%"; statusClass = "bg-primary"; }
+                                else if (Model.OrderStatus == "Completed") { width = "100%"; statusClass = "bg-success"; }
+                                else if (Model.OrderStatus == "Rejected") { width = "100%"; statusClass = "bg-danger"; }
+                            }
+                            <div class="progress-bar progress-bar-striped progress-bar-animated @statusClass" role="progressbar" style="width: @width">@Model.OrderStatus</div>
+                        </div>
+                        @if (Model.OrderStatus == "Rejected")
+                        {
+                            <p class="text-danger"><strong>Reason:</strong> @Model.RejectionReason</p>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-8">
+                <div class="p-4 border bg-white">
+                    <h3 class="mb-3 text-black">Order Items</h3>
+                    <table class="table table-bordered mb-4">
+                        <thead><tr><th>Product</th><th>Qty</th><th>Total</th></tr></thead>
+                        <tbody>
+                            @foreach (var item in Model.OrderItems)
+                            {
+                                <tr>
+                                    <td>@item.Medicine.MedicineName</td>
+                                    <td>@item.Quantity</td>
+                                    <td>@((item.UnitPrice * item.Quantity).ToString("C"))</td>
+                                </tr>
+                            }
+                            <tr><td colspan="2"><strong>Total</strong></td><td><strong>@Model.TotalAmount.ToString("C")</strong></td></tr>
+                        </tbody>
+                    </table>
+                    <a asp-action="Index" asp-controller="Home" asp-area="" class="btn btn-primary">Back to Home</a>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="p-4 border bg-white h-100">
+                    <h4 class="mb-3 text-black">Pharmacy Location</h4>
+                    <p><strong>@Model.Pharmacy.PharmacyName</strong></p>
+
+                    @if (Model.Pharmacy.Latitude != null && Model.Pharmacy.Longitude != null)
+                    {
+                        <div id="pharmacyMap" style="height: 250px; width: 100%; border-radius: 8px; margin-bottom: 10px;"></div>
+                        <a href="https://www.google.com/maps/dir/?api=1&destination=@Model.Pharmacy.Latitude,@Model.Pharmacy.Longitude" target="_blank" class="btn btn-outline-info w-100">
+                            <i class="fas fa-directions"></i> Get Directions
+                        </a>
+                    }
+                    else
+                    {
+                        <div class="alert alert-secondary">Location not available for this pharmacy.</div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+@if (Model.Pharmacy.Latitude != null && Model.Pharmacy.Longitude != null)
+{
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            var lat = @Model.Pharmacy.Latitude;
+            var lng = @Model.Pharmacy.Longitude;
+            var map = L.map('pharmacyMap').setView([lat, lng], 14);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: 'OpenStreetMap'
+            }).addTo(map);
+            L.marker([lat, lng]).addTo(map).bindPopup("@Model.Pharmacy.PharmacyName").openPopup();
+        });
+    </script>
+}

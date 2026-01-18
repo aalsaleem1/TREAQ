@@ -1,0 +1,69 @@
+﻿@model IEnumerable<Traeq.Models.OrderSupportThread>
+
+@{
+    ViewData["Title"] = "Order Messages";
+    Layout = "~/Views/Shared/DashBoardLayout.cshtml";
+}
+
+<div class="container-fluid mt-4">
+    <div class="row mb-3">
+        <div class="col-md-8">
+            <h2 class="h3 mb-0 text-gray-800">Order Support Threads</h2>
+        </div>
+    </div>
+
+    <div class="card shadow mb-4">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover table-bordered">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Created</th>
+                            <th>Order #</th>
+                            <th>Client</th>
+                            <th>Status</th>
+                            <th>Last Activity</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model != null && Model.Any())
+                        {
+                            foreach (var t in Model)
+                            {
+                                var lastMsg = t.Messages?.OrderByDescending(m => m.SentAt).FirstOrDefault();
+                                <tr>
+                                    <td>@t.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>
+                                    <td>@t.OrderId</td>
+                                    <td>@t.User?.FullName (@t.User?.Email)</td>
+                                    <td>
+                                        @if (t.IsClosed)
+                                        {
+                                            <span class="badge bg-secondary">Closed</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-success">Open</span>
+                                        }
+                                    </td>
+                                    <td>@(lastMsg != null ? lastMsg.SentAt.ToString("yyyy-MM-dd HH:mm") : "-")</td>
+                                    <td>
+                                        <a asp-action="OrderMessageDetails" asp-route-id="@t.Id" class="btn btn-sm btn-primary">
+                                            View
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="6" class="text-center text-muted">No order support threads found.</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

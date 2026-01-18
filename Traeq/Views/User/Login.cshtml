@@ -1,0 +1,451 @@
+﻿@{
+    ViewData["Title"] = "Login";
+    Layout = "_Layout";
+}
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    .LoginBody {
+        font-family: 'Poppins', sans-serif;
+        min-height: 80vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 40px 20px;
+        background-color: #fcfcfc;
+    }
+
+    .containerLogin {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 15px 45px rgba(0, 0, 0, 0.1);
+        max-width: 500px;
+        width: 100%;
+        overflow: hidden;
+        border: 1px solid #eee;
+    }
+
+    .tabs {
+        display: flex;
+        background: #f8f9fa;
+    }
+
+    .tab {
+        flex: 1;
+        padding: 20px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s;
+        border-bottom: 3px solid transparent;
+        font-weight: 700;
+        color: #888;
+    }
+
+        .tab.active {
+            background: white;
+            border-bottom: 3px solid #22d3ee;
+            color: #22d3ee;
+        }
+
+    .form-content {
+        padding: 40px;
+    }
+
+    .form-panel {
+        display: none;
+    }
+
+        .form-panel.active {
+            display: block;
+            animation: fadeIn 0.4s ease-out;
+        }
+
+    @@keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    h2 {
+        color: #000;
+        margin-bottom: 25px;
+        text-align: center;
+        font-weight: 800;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    label {
+        display: block;
+        margin-bottom: 8px;
+        color: #333;
+        font-weight: 600;
+        font-size: 14px;
+    }
+
+    input[type="text"], input[type="email"], input[type="password"], input[type="tel"], select {
+        width: 100%;
+        padding: 12px 15px;
+        border: 1px solid #ddd;
+        border-radius: 10px;
+        font-size: 14px;
+        transition: 0.3s;
+    }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #22d3ee;
+            box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.1);
+        }
+
+    button[type="submit"] {
+        width: 100%;
+        padding: 14px;
+        background: #22d3ee;
+        color: white;
+        border: none;
+        border-radius: 10px;
+        font-size: 16px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: 0.3s;
+    }
+
+        button[type="submit"]:hover {
+            background: #0891b2;
+            box-shadow: 0 5px 15px rgba(34, 211, 238, 0.3);
+        }
+
+    .alert {
+        padding: 12px 15px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        display: none;
+        font-size: 14px;
+        font-weight: 500;
+    }
+
+        .alert.success {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .alert.error {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .alert.show {
+            display: block;
+        }
+
+    #map {
+        height: 250px;
+        width: 100%;
+        border-radius: 12px;
+        border: 1px solid #ddd;
+        margin-bottom: 20px;
+    }
+
+    .spinner {
+        border: 3px solid #f3f3f3;
+        border-top: 3px solid #22d3ee;
+        border-radius: 50%;
+        width: 25px;
+        height: 25px;
+        animation: spin 1s linear infinite;
+        margin: 15px auto;
+        display: none;
+    }
+
+        .spinner.show {
+            display: block;
+        }
+
+    @@keyframes spin {
+        0% {
+            transform: rotate(0deg);
+        }
+
+        100% {
+            transform: rotate(360deg);
+        }
+    }
+</style>
+
+<div class="LoginBody">
+    <div class="containerLogin">
+        <div class="tabs">
+            <div class="tab active" onclick="showTab('login')">LOGIN</div>
+            <div class="tab" onclick="showTab('register')">REGISTER</div>
+        </div>
+
+        <div class="form-content">
+            <div id="loginPanel" class="form-panel active">
+                <h2>Welcome Back</h2>
+                <div id="loginAlert" class="alert"></div>
+
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label>Username or Email</label>
+                        <input id="LoginUsername" name="Username" type="text" required />
+                    </div>
+                    <div class="form-group">
+                        <label>Password</label>
+                        <input id="LoginPassword" name="Password" type="password" required />
+                    </div>
+                    <div class="form-group d-flex align-items-center">
+                        <input type="checkbox" id="RememberMe" name="RememberMe" class="me-2" />
+                        <label for="RememberMe" class="mb-0">Remember Me</label>
+                    </div>
+                    <button type="submit" id="loginBtn">LOGIN</button>
+                    <div class="spinner" id="loginLoading"></div>
+                </form>
+            </div>
+
+            <div id="registerPanel" class="form-panel">
+                <h2>Create Account</h2>
+                <div id="registerAlert" class="alert"></div>
+
+                <form id="registerForm">
+                    <input type="hidden" id="regLat" name="Latitude" />
+                    <input type="hidden" id="regLng" name="Longitude" />
+
+                    <div class="form-group">
+                        <label>Account Type *</label>
+                        <select id="AccountType" name="AccountType" required onchange="togglePharmacyFields()">
+                            <option value="">Select Type</option>
+                            <option value="User">Client</option>
+                            <option value="Pharmacy">Pharmacy</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Full Name *</label>
+                        <input id="RegFullName" name="FullName" type="text" required />
+                    </div>
+
+                    <div class="form-group">
+                        <label>Username *</label>
+                        <input id="RegUsername" name="Username" type="text" required />
+                    </div>
+
+                    <div class="form-group">
+                        <label>Email *</label>
+                        <input id="RegEmail" name="Email" type="email" required />
+                    </div>
+                    <div class="form-group">
+                        <label>City *</label>
+                        <input id="RegCity" name="City" type="text" required />
+                    </div>
+
+                    <div class="form-group">
+                        <label>District *</label>
+                        <input id="RegDistrict" name="District" type="text" required />
+                    </div>
+                    <div class="form-group">
+                        <label>Password *</label>
+                        <input id="RegPassword" name="Password" type="password" required minlength="6" />
+                    </div>
+
+                    <div class="form-group">
+                        <label>Confirm Password *</label>
+                        <input id="RegConfirmPassword" name="ConfirmPassword" type="password" required />
+                    </div>
+
+                    <div class="form-group">
+                        <label>User Image</label>
+                        <input id="ImageUrl" name="UserFile" type="file" />
+                    </div>
+
+                    <div id="pharmacySection" style="display: none;" class="p-3 bg-light rounded mb-3">
+                        <h6 class="fw-bold text-primary mb-3">Pharmacy Details</h6>
+                        <div class="form-group">
+                            <label>Pharmacy Name *</label>
+                            <input id="PharmacyName" name="PharmacyName" type="text" />
+                        </div>
+                        <div class="form-group">
+                            <label>License Number *</label>
+                            <input id="PharmacyLicense" name="LicenseNumber" type="text" />
+                        </div>
+                        <div class="form-group">
+                            <label>Pharmacy Logo</label>
+                            <input id="PharmacyLogoUrl" name="LogoFile" type="file" />
+                        </div>
+                        <div id="map"></div>
+                    </div>
+                    <button type="submit" id="registerBtn">REGISTER</button>
+                    <div class="spinner" id="registerLoading"></div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script>
+    var map, marker;
+
+        function showTab(tab) {
+        $('.tab').removeClass('active');
+        $('.form-panel').removeClass('active');
+        if (tab === 'login') {
+            $('.tab:first').addClass('active');
+            $('#loginPanel').addClass('active');
+        } else {
+            $('.tab:last').addClass('active');
+            $('#registerPanel').addClass('active');
+            if ($('#AccountType').val() === 'Pharmacy' && map) {
+                setTimeout(() => map.invalidateSize(), 200);
+            }
+        }
+    }
+
+    function togglePharmacyFields() {
+        const isPharmacy = $('#AccountType').val() === 'Pharmacy';
+        $('#pharmacySection').toggle(isPharmacy);
+        $('#pharmacySection input').prop('required', isPharmacy);
+
+        if (isPharmacy) {
+            if (!map) {
+                initMap();
+            } else {
+                setTimeout(() => map.invalidateSize(), 200);
+            }
+        }
+    }
+
+
+        function initMap() {
+        var defaultLat = 31.9539;
+        var defaultLng = 35.9106;
+
+        var currentLat = $('#regLat').val();
+        var currentLng = $('#regLng').val();
+
+        if (currentLat && currentLng) {
+            defaultLat = parseFloat(currentLat);
+            defaultLng = parseFloat(currentLng);
+        }
+
+        map = L.map('map').setView([defaultLat, defaultLng], 13);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+        marker = L.marker([defaultLat, defaultLng], { draggable: true }).addTo(map);
+
+        if (!currentLat && navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(function (position) {
+                var userLat = position.coords.latitude;
+                var userLng = position.coords.longitude;
+
+                map.setView([userLat, userLng], 15);
+                marker.setLatLng([userLat, userLng]);
+
+                $('#regLat').val(userLat);
+                $('#regLng').val(userLng);
+            }, function () {
+            });
+        }
+
+        marker.on('dragend', function (e) {
+            var pos = marker.getLatLng();
+            $('#regLat').val(pos.lat);
+            $('#regLng').val(pos.lng);
+        });
+
+        map.on('click', function (e) {
+            marker.setLatLng(e.latlng);
+            $('#regLat').val(e.latlng.lat);
+            $('#regLng').val(e.latlng.lng);
+        });
+
+        setTimeout(function () { map.invalidateSize(); }, 200);
+    }
+
+
+    function showAlert(id, msg, type) {
+        $(`#${id}`).text(msg).addClass(`${type} show`);
+        setTimeout(() => $(`#${id}`).removeClass('show'), 4000);
+    }
+
+    $('#loginForm').on('submit', function (e) {
+        e.preventDefault();
+        const returnUrl = new URLSearchParams(window.location.search).get('ReturnUrl') || '/';
+
+        const data = {
+            Username: $('#LoginUsername').val(),
+            Password: $('#LoginPassword').val(),
+            RememberMe: $('#RememberMe').is(':checked')
+        };
+
+        $('#loginLoading').addClass('show');
+        $('#loginBtn').prop('disabled', true);
+
+        $.ajax({
+            url: '/User/Login',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(data),
+            success: function (res) {
+                $('#loginLoading').removeClass('show');
+                if (res.success) {
+                    window.location.href = res.redirectUrl || returnUrl;
+                } else {
+                    showAlert('loginAlert', res.message, 'error');
+                    $('#loginBtn').prop('disabled', false);
+                }
+            },
+            error: () => {
+                $('#loginLoading').removeClass('show');
+                $('#loginBtn').prop('disabled', false);
+                showAlert('loginAlert', 'Connection error', 'error');
+            }
+        });
+    });
+
+    $('#registerForm').on('submit', function (e) {
+        e.preventDefault();
+        if ($('#RegPassword').val() !== $('#RegConfirmPassword').val()) {
+            showAlert('registerAlert', 'Passwords do not match', 'error');
+            return;
+        }
+
+        const formData = new FormData(this);
+        $('#registerLoading').addClass('show');
+        $('#registerBtn').prop('disabled', true);
+
+        $.ajax({
+            url: '/User/Register',
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function (res) {
+                $('#registerLoading').removeClass('show');
+                if (res.success) {
+                    showAlert('registerAlert', 'Account created! Switching to login...', 'success');
+                    setTimeout(() => location.reload(), 2000);
+                } else {
+                    showAlert('registerAlert', res.message, 'error');
+                    $('#registerBtn').prop('disabled', false);
+                }
+            }
+        });
+    });
+</script>

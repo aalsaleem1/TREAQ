@@ -1,0 +1,89 @@
+﻿@model Traeq.DTO.PharmacyDetailsViewModel
+@{
+    ViewData["Title"] = $"{Model.SelectedCategory} - {Model.PharmacyName}";
+}
+
+<div class="bg-light py-3">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12 mb-0">
+                <a asp-action="Index" asp-controller="Home" asp-area="">Home</a>
+                <span class="mx-2">/</span>
+
+                <a asp-action="PharmacyDetails"
+                   asp-controller="Home"
+                   asp-area=""
+                   asp-route-id="@Model.Id">@Model.PharmacyName</a>
+
+                <span class="mx-2">/</span>
+                <strong class="text-black">@Model.SelectedCategory</strong>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="site-section">
+    <div class="container">
+        <div class="row mb-4 align-items-center">
+            <div class="col-md-8">
+                <h2 class="text-black">Category: <span class="text-primary">@Model.SelectedCategory</span></h2>
+            </div>
+            <div class="col-md-4 text-right">
+                <a asp-action="PharmacyDetails"
+                   asp-controller="Home"
+                   asp-area=""
+                   asp-route-id="@Model.Id"
+                   class="btn btn-outline-secondary btn-sm">
+                    <i class="fa fa-arrow-left"></i> Back to Categories
+                </a>
+            </div>
+        </div>
+
+        <div class="row">
+            @if (Model.MedicinesList != null && Model.MedicinesList.Any())
+            {
+                foreach (var medicine in Model.MedicinesList)
+                {
+                    <div class="col-sm-6 col-lg-4 text-center item mb-4">
+                        <div class="card h-100 border-0 shadow-sm p-3">
+                            <a asp-action="MedicineDetails" asp-controller="Home" asp-area="" asp-route-id="@medicine.Id">
+                                @if (!string.IsNullOrEmpty(medicine.ImageURL))
+                                {
+                                    <img src="~/@medicine.ImageURL" alt="@medicine.MedicineName" class="img-fluid" style="height: 200px; object-fit: contain;">
+                                }
+                                else
+                                {
+                                    <img src="~/images/default-medicine.png" alt="No Image" class="img-fluid" style="height: 200px; object-fit: contain;">
+                                }
+                            </a>
+                            <h3 class="text-dark mt-3">
+                                <a asp-action="MedicineDetails" asp-controller="Home" asp-area="" asp-route-id="@medicine.Id">@medicine.MedicineName</a>
+                            </h3>
+                            <p class="price font-weight-bold text-primary">@medicine.Price JOD</p>
+                            <div class="mt-auto">
+                                <a asp-action="MedicineDetails" asp-controller="Home" asp-area="" asp-route-id="@medicine.Id" class="btn btn-primary btn-sm rounded-pill px-4">View Details</a>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="col-12 text-center py-5">
+                    <div class="alert alert-info shadow-sm" style="background-color: #e0f7fa; border-color: #b2ebf2; color: #006064;">
+                        <h4 class="alert-heading mb-3"><i class="fa fa-info-circle"></i> No Medicines Found</h4>
+                        <p>Sorry, there are currently no medicines listed under the <strong>@Model.SelectedCategory</strong> category in this pharmacy.</p>
+                        <hr>
+                        <a asp-action="PharmacyDetails"
+                           asp-controller="Home"
+                           asp-area=""
+                           asp-route-id="@Model.Id"
+                           class="btn btn-info mt-2 text-white">
+                            BROWSE OTHER CATEGORIES
+                        </a>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>

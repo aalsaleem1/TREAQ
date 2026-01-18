@@ -1,0 +1,272 @@
+﻿@using Microsoft.AspNetCore.Identity
+@inject UserManager<Traeq.Models.User> UserManager
+@{
+    var user = await UserManager.GetUserAsync(User);
+    var accountType = user?.AccountType ?? string.Empty;
+    var isAdmin = string.Equals(accountType, "Admin", System.StringComparison.OrdinalIgnoreCase);
+    var isPharmacy = string.Equals(accountType, "Pharmacy", System.StringComparison.OrdinalIgnoreCase)
+                     || string.Equals(accountType, "Employee", System.StringComparison.OrdinalIgnoreCase);
+
+    var dbContext = Context.RequestServices.GetService(typeof(Traeq.Data.AppDbContext)) as Traeq.Data.AppDbContext;
+    var currentUserId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+    
+
+   
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>@ViewData["Title"] - TREAQ</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="~/Asset/css/bootstrap.min.css">
+    <link rel="stylesheet" href="~/Asset/css/style.css">
+
+    <style>
+        :root {
+            --primary-brand: #22d3ee;
+            --dark-bold: #000000;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .navbar-brand {
+            font-weight: 800;
+            font-size: 26px;
+            color: var(--primary-brand) !important;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .nav-link {
+            font-weight: 800 !important;
+            color: var(--dark-bold) !important;
+            font-size: 14px;
+            margin-left: 25px;
+            text-transform: uppercase;
+        }
+
+            .nav-link:hover {
+                color: var(--primary-brand) !important;
+            }
+
+        .dropdown-menu {
+            border: none;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            border-radius: 12px;
+            padding: 10px;
+            z-index: 9999 !important;
+        }
+
+        footer {
+            margin-top: auto;
+            background-color: #ffffff;
+            padding: 50px 0 20px;
+            border-top: 1px solid #f0f0f0;
+        }
+
+        .footer-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .footer-brand-side {
+            max-width: 400px;
+        }
+
+        .footer-contact-side {
+            text-align: right;
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar navbar-expand-lg sticky-top bg-white shadow-sm">
+        <div class="container">
+            <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">
+                <i class="fas fa-capsules me-1"></i>TREAQ
+            </a>
+
+            <div class="collapse navbar-collapse" id="mainNav">
+                @if (!User.Identity.IsAuthenticated || (!isAdmin && !isPharmacy))
+                {
+                    <ul class="navbar-nav mx-auto">
+                        <li class="nav-item"><a class="nav-link" asp-area="" asp-controller="Home" asp-action="Index">HOME</a></li>
+                        <li class="nav-item"><a class="nav-link" asp-area="" asp-controller="Home" asp-action="Stor">STORE</a></li>
+                        <li class="nav-item"><a class="nav-link" asp-area="" asp-controller="Home" asp-action="PharmaciesMap">PHARMACIES MAP</a></li>
+                        <li class="nav-item"><a class="nav-link" asp-area="" asp-controller="Home" asp-action="AboutUs">ABOUT US</a></li>
+                        <li class="nav-item"><a class="nav-link" asp-area="" asp-controller="Home" asp-action="ContactUs">CONTACT US</a></li>
+                    </ul>
+                }
+                else
+                {
+                    <div class="mx-auto"></div>
+                }
+
+                <div class="d-flex align-items-center">
+                    <form method="get" asp-area="" asp-controller="Home" asp-action="Search" class="d-flex me-3">
+                        <input type="text" name="query" class="form-control form-control-sm" placeholder="Search..." />
+                        <button type="submit" class="btn btn-sm btn-outline-secondary ms-1">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </form>
+
+                    @if (!User.Identity.IsAuthenticated || (!isAdmin && !isPharmacy))
+                    {
+                        <a asp-area="" asp-controller="Cart" asp-action="Index" class="text-dark position-relative" style="margin-right: 35px;">
+                            <i class="fas fa-shopping-cart fa-lg"></i>
+                        </a>
+                    }
+
+                    @if (User.Identity.IsAuthenticated)
+                    {
+
+                        <div class="dropdown ms-3">
+                            <a href="javascript:void(0)" class="dropdown-toggle d-flex align-items-center text-decoration-none" id="userMenuBtn" data-bs-toggle="dropdown">
+                                <img src="@(user?.ImageUrl != null ? "/" + user.ImageUrl : "https://via.placeholder.com/35")" class="rounded-circle border border-2" width="38" height="38" style="object-fit: cover;" />
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end shadow border-0">
+                                <li class="dropdown-header fw-bold text-dark">@User.Identity.Name</li>
+
+                                @if (isAdmin)
+                                {
+                                    <li>
+                                        <form asp-area="" asp-controller="User" asp-action="Logout" method="post">
+                                            <button type="submit" class="dropdown-item text-danger fw-bold">
+                                                <i class="fas fa-sign-out-alt me-2"></i> Logout
+                                            </button>
+                                        </form>
+                                    </li>
+                                }
+                                else if (isPharmacy)
+                                {
+                                    var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
+                                    var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
+                                    var onProfile = string.Equals(currentController, "User", System.StringComparison.OrdinalIgnoreCase)
+                                    && string.Equals(currentAction, "Profile", System.StringComparison.OrdinalIgnoreCase);
+
+                                    if (onProfile)
+                                    {
+                                        <li>
+                                            <a class="dropdown-item rounded" asp-area="Pharmacy" asp-controller="Dashboard" asp-action="Index">
+                                                <i class="fas fa-tachometer-alt me-2"></i> Dashboard
+                                            </a>
+                                        </li>
+                                    }
+                                    else
+                                    {
+                                        <li>
+                                            <a class="dropdown-item rounded" asp-area="" asp-controller="User" asp-action="Profile">
+                                                <i class="fas fa-user-circle me-2"></i> Profile
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item rounded" asp-area="Pharmacy" asp-controller="Dashboard" asp-action="Index">
+                                                <i class="fas fa-tachometer-alt me-2"></i> Dashboard
+                                            </a>
+                                        </li>
+                                    }
+
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <form asp-area="" asp-controller="User" asp-action="Logout" method="post">
+                                            <button type="submit" class="dropdown-item text-danger fw-bold">
+                                                <i class="fas fa-sign-out-alt me-2"></i> Logout
+                                            </button>
+                                        </form>
+                                    </li>
+                                }
+                                else
+                                {
+                                    <li>
+                                        <a class="dropdown-item rounded" asp-area="" asp-controller="User" asp-action="Profile">
+                                            <i class="fas fa-user-circle me-2"></i> Profile
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item rounded" asp-area="" asp-controller="Orders" asp-action="Current">
+                                            <i class="fas fa-box-open me-2"></i> Current Orders
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item rounded" asp-area="" asp-controller="Orders" asp-action="History">
+                                            <i class="fas fa-history me-2"></i> Past Orders
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item rounded" asp-area="" asp-controller="Home" asp-action="MyMessages">
+                                            <i class="fas fa-comments me-2"></i> My Messages
+                                        </a>
+                                    </li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <form asp-area="" asp-controller="User" asp-action="Logout" method="post">
+                                            <button type="submit" class="dropdown-item text-danger fw-bold">
+                                                <i class="fas fa-sign-out-alt me-2"></i> Logout
+                                            </button>
+                                        </form>
+                                    </li>
+                                }
+                            </ul>
+                        </div>
+                    }
+                    else
+                    {
+                        <a asp-area="" asp-controller="User" asp-action="Login" class="btn btn-primary rounded-pill px-4 fw-bold">LOGIN</a>
+                    }
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main>@RenderBody()</main>
+
+    <footer>
+        <div class="container">
+            <div class="footer-container">
+                <div class="footer-brand-side">
+                    <h3 class="fw-bold text-primary mb-3">TREAQ</h3>
+                    <p class="text-muted">Your premier health partner in Jordan. Connecting you with pharmacies effortlessly for a better, healthier lifestyle.</p>
+                </div>
+                <div class="footer-contact-side">
+                    <h5 class="fw-bold mb-3">GET IN TOUCH</h5>
+                    <p class="text-muted mb-1"><i class="fas fa-map-marker-alt me-2 text-primary"></i> Amman, Jordan</p>
+                    <p class="text-muted mb-1"><i class="fas a-envelope me-2 text-primary"></i> contact@treaq.com</p>
+                </div>
+            </div>
+            <div class="border-top mt-4 pt-3 text-center text-muted small">
+                &copy; @DateTime.Now.Year TREAQ. All Rights Reserved.
+            </div>
+        </div>
+    </footer>
+
+    <script src="~/Asset/js/jquery-3.3.1.min.js"></script>
+    <script src="~/Asset/js/bootstrap.min.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            $('#userMenuBtn').on('click', function (e) {
+                var menu = $(this).next('.dropdown-menu');
+                $('.dropdown-menu').not(menu).removeClass('show');
+                menu.toggleClass('show');
+                e.stopPropagation();
+            });
+            $(document).on('click', function () {
+                $('.dropdown-menu').removeClass('show');
+            });
+        });
+    </script>
+
+    @RenderSection("Scripts", required: false)
+</body>
+</html>

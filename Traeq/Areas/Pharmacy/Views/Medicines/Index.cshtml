@@ -1,0 +1,137 @@
+﻿@model List<Traeq.Models.Medicine>
+@{
+    ViewData["Title"] = "Pharmacy Medicines";
+    Layout = "~/views/shared/dashboardlayout.cshtml";
+}
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Pharmacy Medicines</h1>
+        <a href="/Pharmacy/Medicines/Create" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Add New Medicine
+        </a>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["SuccessMessage"]
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    }
+
+    <div class="card shadow mb-4">
+        <div class="card-body">
+            @if (Model.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-bordered" id="medicinesTable">
+                        <thead>
+                            <tr>
+                                <th>Image</th>
+                                <th>Medicine Name</th>
+                                <th>Scientific Name</th>
+                                <th>Quantity</th>
+                                <th>Price</th>
+                                <th>Category</th>
+                                <th>Expiry Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var medicine in Model)
+                            {
+                                <tr>
+                                    <td>
+                                        @if (!string.IsNullOrEmpty(medicine.ImageURL))
+                                        {
+                                            <img src="~/@medicine.ImageURL" alt="@medicine.MedicineName"
+                                                 style="width: 50px; height: 50px; object-fit: cover; border-radius: 5px;">
+                                        }
+                                        else
+                                        {
+                                            <div style="width: 50px; height: 50px; background-color: #f8f9fa;
+                                                             border-radius: 5px; display: flex; align-items: center; justify-content: center;">
+                                                <i class="fas fa-pills text-secondary"></i>
+                                            </div>
+                                        }
+                                    </td>
+                                    <td>@medicine.MedicineName</td>
+                                    <td>@medicine.ScientificName</td>
+                                    <td>@medicine.Quantity</td>
+                                    <td>@medicine.Price?.ToString("C")</td>
+                                    <td>@medicine.Category</td>
+                                    <td>@medicine.ExpiryDate?.ToString("yyyy-MM-dd")</td>
+
+                                    <td>
+                                        <a href="/Pharmacy/Medicines/Edit/@medicine.Id"
+                                           class="btn btn-sm btn-warning">Edit</a>
+
+                                        <button class="btn btn-sm btn-danger btn-delete"
+                                                data-id="@medicine.Id">
+                                            Delete
+                                        </button>
+
+                                        <button class="btn btn-sm btn-toggle @(medicine.IsActive ? "btn-success" : "btn-secondary")"
+                                                data-id="@medicine.Id">
+                                            @(medicine.IsActive ? "Active" : "Inactive")
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-5">
+                    <i class="fas fa-pills fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">No medicines found yet</h5>
+                    <p class="text-muted">Start by adding the first medicine to your pharmacy</p>
+                    <a asp-action="Create" class="btn btn-primary mt-3">
+                        <i class="fas fa-plus"></i> Add New Medicine
+                    </a>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+
+            $(".btn-delete").click(function () {
+                if (!confirm("Are you sure you want to delete?")) return;
+
+                let btn = $(this);
+                let id = btn.data("id");
+
+                $.post("/Pharmacy/Medicines/Delete", {
+                    id: id,
+                    __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                })
+                .done(function () {
+                    btn.closest("tr").fadeOut();
+                });
+            });
+
+            $(".btn-toggle").click(function () {
+                let btn = $(this);
+                let id = btn.data("id");
+
+                $.post("/Pharmacy/Medicines/ToggleActive", {
+                    id: id,
+                    __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                })
+                .done(function () {
+                    location.reload();
+                });
+            });
+
+        });
+    </script>
+}

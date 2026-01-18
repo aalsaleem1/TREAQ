@@ -1,0 +1,83 @@
+﻿@model Traeq.Models.OrderSupportThread
+
+@{
+    ViewData["Title"] = "Order Support Details";
+    Layout = "~/Views/Shared/DashBoardLayout.cshtml";
+}
+
+<div class="container-fluid mt-4">
+    <div class="row mb-3">
+        <div class="col-md-8">
+            <h2 class="h3 mb-0 text-gray-800">Order Support - #@Model.OrderId</h2>
+            <p class="text-muted mb-1">Client: @Model.User?.FullName (@Model.User?.Email)</p>
+            @if (Model.IsClosed)
+            {
+                <span class="badge bg-secondary">Closed</span>
+            }
+            else
+            {
+                <span class="badge bg-success">Open</span>
+            }
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card shadow mb-3">
+                <div class="card-body" style="max-height: 450px; overflow-y: auto; background-color:#f8f9fa;">
+                    @if (Model.Messages != null && Model.Messages.Any())
+                    {
+                        foreach (var msg in Model.Messages)
+                        {
+                            var isUser = msg.SenderType == "User";
+                            <div class="d-flex mb-2 @(isUser ? "justify-content-start" : "justify-content-end")">
+                                <div class="p-2 rounded" style="max-width:70%; @(isUser ? "background-color:white;border:1px solid #dee2e6;" : "background-color:#0d6efd;color:white;")">
+                                    <div class="small text-muted mb-1">
+                                        @(isUser ? "Client" : "Admin") - @msg.SentAt.ToString("yyyy-MM-dd HH:mm")
+                                    </div>
+                                    <div>@msg.MessageText</div>
+                                </div>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <p class="text-muted mb-0">No messages yet.</p>
+                    }
+                </div>
+            </div>
+
+            @if (!Model.IsClosed)
+            {
+                <div class="card shadow">
+                    <div class="card-body">
+                        <form asp-action="SendAdminOrderSupportMessage" method="post">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="threadId" value="@Model.Id" />
+                            <div class="mb-3">
+                                <label for="messageText" class="form-label">Reply</label>
+                                <textarea class="form-control" id="messageText" name="messageText" rows="3" required></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Send Reply</button>
+                        </form>
+
+                        <form asp-action="CloseAdminOrderSupportThread" method="post" class="mt-2">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="threadId" value="@Model.Id" />
+                            <button type="submit" class="btn btn-outline-danger btn-sm"
+                                    onclick="return confirm('Are you sure you want to end this conversation?');">
+                                End Conversation
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <p class="text-muted mt-2">
+                    This conversation is closed. You cannot send more messages.
+                </p>
+            }
+        </div>
+    </div>
+</div>

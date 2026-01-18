@@ -1,0 +1,91 @@
+﻿@model Traeq.DTO.SearchViewModel
+
+@{
+    ViewData["Title"] = $"نتائج البحث: {Model.SearchQuery}";
+}
+
+<div class="bg-light py-3">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12 mb-0">
+                <a asp-action="Index" asp-controller="Home" asp-area="">Home</a>
+                <span class="mx-2">/</span>
+                <strong class="text-black">Search Results</strong>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="site-section">
+    <div class="container">
+        <h2 class="mb-4">نتائج البحث عن: <span class="text-primary">"@Model.SearchQuery"</span></h2>
+
+        @if (Model.Medicines != null && Model.Medicines.Any())
+        {
+            <h3 class="mb-3 border-bottom pb-2">الأدوية Found (@Model.Medicines.Count)</h3>
+            <div class="row mb-5">
+                @foreach (var item in Model.Medicines)
+                {
+                    <div class="col-sm-6 col-lg-4 text-center item mb-4">
+                        <div class="card h-100 border-0 shadow-sm p-3">
+                            <a asp-action="MedicineDetails" asp-controller="Home" asp-area="" asp-route-id="@item.Id">
+                                @if (!string.IsNullOrEmpty(item.ImageURL))
+                                {
+                                    <img src="~/@item.ImageURL" alt="@item.MedicineName" class="img-fluid" style="height: 200px; object-fit: contain;">
+                                }
+                                else
+                                {
+                                    <img src="~/images/default-medicine.png" alt="No Image" class="img-fluid" style="height: 200px; object-fit: contain;">
+                                }
+                            </a>
+
+                            <h3 class="text-dark mt-3">
+                                <a asp-action="MedicineDetails" asp-controller="Home" asp-area="" asp-route-id="@item.Id">@item.MedicineName</a>
+                            </h3>
+
+                            <p class="mb-1 text-muted" style="font-size: 0.9rem;">
+                                متوفر في: <strong class="text-info">@(item.PharmacyLegalInfo?.PharmacyName ?? "صيدلية غير معروفة")</strong>
+                            </p>
+
+                            <p class="text-muted small mb-1">@item.ScientificName</p>
+                            <p class="price font-weight-bold text-primary">@item.Price JOD</p>
+
+                            <a asp-action="MedicineDetails" asp-controller="Home" asp-area="" asp-route-id="@item.Id" class="btn btn-primary btn-sm rounded-pill px-4">View Details</a>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            if (Model.Pharmacies == null || !Model.Pharmacies.Any())
+            {
+                <div class="col-12 text-center py-5">
+                    <div class="alert alert-warning text-center">لا يوجد أدوية أو صيدليات تطابق بحثك.</div>
+                </div>
+            }
+        }
+
+        @if (Model.Pharmacies != null && Model.Pharmacies.Any())
+        {
+            <h3 class="mb-3 border-bottom pb-2 mt-5">الصيدليات Found (@Model.Pharmacies.Count)</h3>
+            <div class="row">
+                @foreach (var pharm in Model.Pharmacies)
+                {
+                    <div class="col-md-6 col-lg-4 mb-4">
+                        <a asp-action="PharmacyDetails" asp-controller="Home" asp-area="" asp-route-id="@pharm.Id" class="text-decoration-none">
+                            <div class="card h-100 shadow-sm border-0 text-center py-4 hover-card">
+                                <div class="card-body">
+                                    <img src="~/@pharm.PharmacyLogoUrl" class="rounded-circle mb-3" style="width: 100px; height: 100px; object-fit: cover;">
+                                    <h5 class="card-title text-dark font-weight-bold">@pharm.PharmacyName</h5>
+                                    <p class="text-muted">@pharm.User?.City</p>
+                                    <span class="btn btn-outline-primary btn-sm rounded-pill">Visit Pharmacy</span>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</div>

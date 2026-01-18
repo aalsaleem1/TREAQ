@@ -1,0 +1,80 @@
+﻿@model IEnumerable<Traeq.Models.User>
+
+@{
+    ViewData["Title"] = "Manage Users";
+    Layout = "~/Views/Shared/DashBoardLayout.cshtml";
+}
+
+<div class="container-fluid mt-4">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">User Management</h1>
+    </div>
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">All Registered Users</h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered" width="100%" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th>User Name</th>
+                            <th>Email</th>
+                            <th>Account Type</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td>@item.UserName</td>
+                                <td>@item.Email</td>
+                                <td>
+                                    @if (item.AccountType == "Admin")
+                                    {
+                                        <span class="badge bg-danger">Admin</span>
+                                    }
+                                    else if (item.AccountType == "Pharmacy")
+                                    {
+
+                                        <span class="badge bg-primary">Pharmacy</span>
+                                    }
+                                    else if (item.AccountType == "Employee")
+                                    {
+
+                                        <span class="badge bg-info text-dark">Employee</span>
+                                    }
+                                    else
+                                    {
+
+                                        <span class="badge bg-secondary">User</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (item.IsActive)
+                                    {
+                                        <span class="text-success fw-bold">Active</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">Inactive</span>
+                                    }
+                                </td>
+                                <td>
+                                    <a asp-action="ToggleActive" asp-route-id="@item.Id"
+                                       class="btn btn-sm @(item.IsActive ? "btn-success" : "btn-secondary")">
+                                        <i class="bi @(item.IsActive ? "bi-toggle-on" : "bi-toggle-off")"></i>
+                                        @(item.IsActive ? "Active" : "Inactive")
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

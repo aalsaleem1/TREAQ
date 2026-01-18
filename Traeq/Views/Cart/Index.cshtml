@@ -1,0 +1,169 @@
+﻿@model List<Traeq.Models.Cart>
+@{
+    ViewData["Title"] = "Shopping Cart";
+    decimal subtotal = Model?.Sum(c => c.TotalPrice) ?? 0;
+    decimal discount = ViewBag.DiscountAmount != null ? (decimal)ViewBag.DiscountAmount : 0m;
+    decimal total = subtotal - discount;
+    if (total < 0) { total = 0; }
+}
+
+<div class="bg-light py-3">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12 mb-0">
+                <a asp-action="Index" asp-controller="Home" asp-area="">Home</a>
+                <span class="mx-2 mb-0">/</span>
+                <strong class="text-black">Cart</strong>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="site-section mt-4">
+    <div class="container">
+        @if (Model == null || !Model.Any())
+        {
+            <div class="text-center py-5">
+                <i class="fas fa-shopping-basket fa-4x text-light mb-3"></i>
+                <h3>Your Cart is Empty</h3>
+                <p class="text-muted">You haven't added any medicines to your cart yet.</p>
+                <a asp-action="Stor" asp-controller="Home" asp-area="" class="btn btn-primary rounded-pill px-4">Browse Products</a>
+            </div>
+        }
+        else
+        {
+            @if (TempData["PromoSuccess"] != null)
+            {
+                <div class="alert alert-success" id="promo-msg">
+                    @TempData["PromoSuccess"]
+                </div>
+            }
+            @if (TempData["PromoError"] != null)
+            {
+                <div class="alert alert-danger" id="promo-msg">
+                    @TempData["PromoError"]
+                </div>
+            }
+
+            <div class="row mb-5">
+                <div class="col-md-12">
+                    <div class="table-responsive shadow-sm rounded">
+                        <table class="table table-bordered bg-white align-middle text-center">
+                            <thead class="bg-primary text-white">
+                                <tr>
+                                    <th>Image</th>
+                                    <th>Product</th>
+                                    <th>Price</th>
+                                    <th>Quantity</th>
+                                    <th>Total</th>
+                                    <th>Remove</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model)
+                                {
+                                    <tr>
+                                        <td class="product-thumbnail">
+                                            @if (item.Medecine != null)
+                                            {
+                                                <img src="~/@item.Medecine.ImageURL" alt="@item.Medecine.MedicineName" class="img-fluid" style="max-width: 80px;">
+                                            }
+                                        </td>
+                                        <td class="product-name">
+                                            <h2 class="h6 text-black fw-bold mb-0">@(item.Medecine?.MedicineName ?? "Medicine")</h2>
+                                            <small class="text-muted">@(item.Medecine?.ScientificName ?? "")</small>
+                                        </td>
+                                        <td>@item.UnitPrice.ToString("N2") JOD</td>
+                                        <td>
+                                            @{
+                                                var maxQty = item.Medecine?.Quantity ?? 0;
+                                                if (maxQty <= 0)
+                                                {
+                                                    maxQty = item.Quantity;
+                                                }
+                                            }
+                                            <form asp-action="UpdateQuantity" asp-controller="Cart" asp-area="" method="post" class="d-flex justify-content-center">
+                                                <input type="hidden" name="cartId" value="@item.Id" />
+                                                <div class="input-group" style="max-width: 110px;">
+                                                    <input type="number"
+                                                           name="quantity"
+                                                           class="form-control form-control-sm text-center"
+                                                           value="@item.Quantity"
+                                                           min="1"
+                                                           max="@maxQty"
+                                                           onchange="this.form.submit()">
+                                                </div>
+                                            </form>
+                                        </td>
+                                        <td class="fw-bold text-primary">@item.TotalPrice.ToString("N2") JOD</td>
+                                        <td>
+                                            <form asp-action="RemoveFromCart" asp-controller="Cart" asp-area="" method="post">
+                                                <input type="hidden" name="cartId" value="@item.Id" />
+                                                <button type="submit" class="btn btn-outline-danger btn-sm border-0">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="row mb-5">
+                        <div class="col-md-6 mb-2">
+                            <form asp-action="ClearCart" asp-controller="Cart" asp-area="" method="post">
+                                <button type="submit" class="btn btn-outline-danger btn-sm px-4 rounded-pill" onclick="return confirm('Clear all items?')">Empty Cart</button>
+                            </form>
+                        </div>
+                        <div class="col-md-6 mb-2">
+                            <form asp-action="ApplyPromo" asp-controller="Cart" asp-area="" method="post" class="d-flex">
+                                <input type="text"
+                                       name="promoCode"
+                                       class="form-control form-control-sm me-2"
+                                       placeholder="Promo code">
+                                <button type="submit" class="btn btn-outline-primary btn-sm rounded-pill px-3">
+                                    Apply
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 pl-5">
+                    <div class="row justify-content-end">
+                        <div class="col-md-8">
+                            <div class="card border-0 shadow-sm p-4">
+                                <h3 class="text-black h5 text-uppercase border-bottom pb-2 mb-3">Cart Totals</h3>
+                                <div class="d-flex justify-content-between mb-3">
+                                    <span>Subtotal</span>
+                                    <strong class="text-black">@subtotal.ToString("N2") JOD</strong>
+                                </div>
+                                <div class="d-flex justify-content-between mb-3">
+                                    <span>Discount</span>
+                                    <strong class="text-success">-@discount.ToString("N2") JOD</strong>
+                                </div>
+                                <div class="d-flex justify-content-between mb-4">
+                                    <span>Total</span>
+                                    <strong class="text-primary h4">@total.ToString("N2") JOD</strong>
+                                </div>
+                                <a asp-action="Index" asp-controller="Checkout" asp-area="" class="btn btn-primary btn-lg btn-block rounded-pill">Proceed to Checkout</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <script>
+                if (document.getElementById('promo-msg')) {
+                    setTimeout(function () {
+                        document.getElementById('promo-msg').style.display = 'none';
+                    }, 2000);
+                }
+            </script>
+        }
+    </div>
+</div>

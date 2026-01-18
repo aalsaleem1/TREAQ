@@ -1,0 +1,98 @@
+﻿@model Traeq.DTO.UserDTO
+
+@{
+    ViewData["Title"] = "User Details";
+    Layout = "~/Views/Shared/DashBoardLayout.cshtml";
+}
+
+<div class="container-fluid mt-4">
+    <div class="row mb-3">
+        <div class="col-md-8">
+            <h2 class="h3 mb-0 text-gray-800">User Details</h2>
+        </div>
+        <div class="col-md-4 text-end">
+            <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">
+                <i class="fa fa-edit"></i> Edit
+            </a>
+            <a asp-action="Index" class="btn btn-outline-secondary ms-1">
+                Back to List
+            </a>
+        </div>
+    </div>
+
+    <div class="card shadow mb-4">
+        <div class="card-body">
+            <div class="row mb-3">
+                <div class="col-md-3 text-center">
+                    @if (!string.IsNullOrEmpty(Model.ImageUrl))
+                    {
+                        <img src="~/@Model.ImageUrl" alt="Profile" class="img-fluid rounded-circle mb-2" style="max-width:150px;">
+                    }
+                    else
+                    {
+                        <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center mb-2"
+                             style="width:150px;height:150px;font-size:48px;">
+                            <i class="fa fa-user"></i>
+                        </div>
+                    }
+
+                    <span class="badge @(Model.IsActive ? "bg-success" : "bg-secondary")">
+                        @(Model.IsActive ? "Active" : "Inactive")
+                    </span>
+                </div>
+
+                <div class="col-md-9">
+                    <h4 class="mb-3">@Model.FullName</h4>
+
+                    <dl class="row">
+                        <dt class="col-sm-3">Username</dt>
+                        <dd class="col-sm-9">@Model.UserName</dd>
+
+                        <dt class="col-sm-3">Email</dt>
+                        <dd class="col-sm-9">@Model.Email</dd>
+
+                        <dt class="col-sm-3">Phone</dt>
+                        <dd class="col-sm-9">@Model.PhoneNumber</dd>
+
+                        <dt class="col-sm-3">City</dt>
+                        <dd class="col-sm-9">@Model.City</dd>
+
+                        <dt class="col-sm-3">District</dt>
+                        <dd class="col-sm-9">@Model.District</dd>
+
+                        <dt class="col-sm-3">Type</dt>
+                        <dd class="col-sm-9">@Model.AccountType</dd>
+                    </dl>
+                </div>
+            </div>
+
+            @if (Model.AccountType == "Pharmacy")
+            {
+                <hr />
+                <h5>Pharmacy Information</h5>
+                <dl class="row">
+                    <dt class="col-sm-3">Pharmacy Name</dt>
+                    <dd class="col-sm-9">@Model.PharmacyName</dd>
+
+                    <dt class="col-sm-3">License Number</dt>
+                    <dd class="col-sm-9">@Model.PharmacyLicense</dd>
+
+                    <dt class="col-sm-3">Owner Name</dt>
+                    <dd class="col-sm-9">@Model.OwnerName</dd>
+
+                    <dt class="col-sm-3">Pharmacy Logo</dt>
+                    <dd class="col-sm-9">
+                        @if (!string.IsNullOrEmpty(Model.PharmacyLogoUrl))
+                        {
+                            <img src="~/@Model.PharmacyLogoUrl" alt="Pharmacy Logo" style="max-height:80px;" />
+                        }
+                        else
+                        {
+                            <span class="text-muted">No logo uploaded.</span>
+                        }
+                    </dd>
+                </dl>
+            }
+        </div>
+    </div>
+</div>

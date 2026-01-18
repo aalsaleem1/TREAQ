@@ -1,0 +1,53 @@
+﻿@model IEnumerable<Traeq.Models.Order>
+@{
+    ViewData["Title"] = "Past Orders";
+}
+
+<div class="site-section">
+    <div class="container">
+        <h2 class="h3 mb-3 text-black">Past Orders History</h2>
+        <div class="row mb-5">
+            <div class="col-md-12">
+                <div class="site-blocks-table">
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Order ID</th>
+                                <th>Pharmacy</th>
+                                <th>Date</th>
+                                <th>Total</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model)
+                            {
+                                <tr>
+                                    <td>#@item.Id</td>
+                                    <td>@item.Pharmacy.PharmacyName</td>
+                                    <td>@item.OrderDate.ToString("yyyy-MM-dd")</td>
+                                    <td>@item.TotalAmount.ToString("C")</td>
+                                    <td>
+                                        @if (item.OrderStatus == "Completed")
+                                        {
+                                            <span class="badge badge-success">Completed</span>
+                                        }
+                                        else
+                                        {
+
+                                            <span class="badge badge-danger">Rejected</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <a asp-action="Details" asp-controller="Orders" asp-route-id="@item.Id" asp-area="" class="btn btn-secondary btn-sm">View Details</a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

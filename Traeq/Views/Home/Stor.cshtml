@@ -1,0 +1,93 @@
+﻿@model Traeq.DTO.HomeDTO
+@{
+    ViewData["Title"] = "Store";
+}
+
+<div class="bg-light py-3">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12 mb-0">
+                <a asp-action="Index" asp-controller="Home" asp-area="">Home</a>
+                <span class="mx-2 mb-0">/</span>
+                <strong class="text-black">Store</strong>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="site-section bg-light py-5">
+    <div class="container">
+        <div class="row">
+            <div class="title-section text-center col-12 mb-5">
+                <h2 class="text-uppercase fw-bold text-dark">Available Medicines</h2>
+                <div class="mx-auto mt-2" style="width: 60px; height: 3px; background-color: #22d3ee;"></div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-12 block-3 products-wrap">
+                <div class="nonloop-block-3 owl-carousel">
+                    @if (Model.MedicineList != null && Model.MedicineList.Any())
+                    {
+                        foreach (var medicine in Model.MedicineList)
+                        {
+                            <div class="text-center item mb-4 p-3 bg-white rounded shadow-sm">
+                                <a asp-action="MedicineDetails" asp-controller="Home" asp-area="" asp-route-id="@medicine.Id">
+                                    <img src="~/@medicine.ImageURL" alt="@medicine.MedicineName" class="img-fluid mb-3" style="height: 200px; object-fit: contain;">
+                                </a>
+
+                                @if (medicine.PharmacyLegalInfo != null && !string.IsNullOrEmpty(medicine.PharmacyLegalInfo.PharmacyName))
+                                {
+                                    <p class="mb-1 text-muted small">
+                                        Pharmacy: <span class="fw-semibold">@medicine.PharmacyLegalInfo.PharmacyName</span>
+                                    </p>
+                                }
+
+
+                                <h3 class="text-dark fw-bold h6">
+                                    <a asp-action="MedicineDetails" asp-controller="Home" asp-area="" asp-route-id="@medicine.Id" class="text-decoration-none text-dark">
+                                        @medicine.MedicineName
+                                    </a>
+                                </h3>
+
+                                <p class="price fw-bold text-primary">@medicine.Price?.ToString("N2") JOD</p>
+
+                                <form asp-action="AddToCart" asp-controller="Cart" asp-area="" method="post">
+                                    <input type="hidden" name="medicineId" value="@medicine.Id" />
+                                    <input type="hidden" name="quantity" value="1" />
+                                    <button type="submit" class="btn btn-primary btn-sm rounded-pill px-4 fw-bold shadow-sm" style="background-color: #22d3ee; border: none;">
+                                        ADD TO CART
+                                    </button>
+                                </form>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="col-12 text-center">
+                            <p class="text-muted">No medicines found in the store.</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .item {
+        transition: transform 0.3s ease;
+        border: 1px solid #f0f0f0;
+        margin: 10px;
+    }
+
+        .item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.05) !important;
+        }
+
+    .owl-stage {
+        display: flex;
+        align-items: stretch;
+    }
+</style>

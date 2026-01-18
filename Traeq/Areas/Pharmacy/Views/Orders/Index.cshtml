@@ -1,0 +1,51 @@
+﻿@model IEnumerable<Traeq.Models.Order>
+@{
+    ViewData["Title"] = "All Orders";
+    Layout = "~/Views/Shared/DashBoardLayout.cshtml";
+}
+
+<div class="container-fluid">
+    <h1 class="h3 mb-4 text-gray-800">All Orders</h1>
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Full Order History</h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover" id="dataTable" width="100%" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th>#ID</th>
+                            <th>Date</th>
+                            <th>Customer</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td>@item.Id</td>
+                                <td>@item.OrderDate.ToString("yyyy-MM-dd")</td>
+                                <td>@item.User.FullName</td>
+                                <td>@item.TotalAmount.ToString("C")</td>
+                                <td>
+                                    <span class="badge @(item.OrderStatus == "Completed" ? "bg-success" : item.OrderStatus == "Pending" ? "bg-warning" : item.OrderStatus == "Rejected" ? "bg-danger" : "bg-info")">
+                                        @item.OrderStatus
+                                    </span>
+                                </td>
+                                <td>
+                                    <a asp-area="Pharmacy" asp-controller="Orders" asp-action="Details" asp-route-id="@item.Id" class="btn btn-primary btn-sm">
+                                        Details
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

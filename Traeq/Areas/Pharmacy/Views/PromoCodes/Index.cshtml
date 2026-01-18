@@ -1,0 +1,134 @@
+﻿@model IEnumerable<Traeq.Models.PharmacyPromoCode>
+
+@{
+    ViewData["Title"] = "Promo Codes";
+    Layout = "~/Views/Shared/DashBoardLayout.cshtml";
+}
+
+<div class="pagetitle">
+    <h1>Promo Codes</h1>
+    <nav>
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+                <a asp-area="Pharmacy" asp-controller="Dashboard" asp-action="Index">Dashboard</a>
+            </li>
+            <li class="breadcrumb-item active">Promo Codes</li>
+        </ol>
+    </nav>
+</div>
+
+<section class="section">
+    <div class="row">
+        <div class="col-lg-12">
+
+            <div class="card">
+                <div class="card-body">
+
+                    <div class="d-flex justify-content-between align-items-center mt-3 mb-3">
+                        <h5 class="card-title mb-0">Manage Promo Codes</h5>
+                        <a asp-area="Pharmacy" asp-controller="PromoCodes" asp-action="Create"
+                           class="btn btn-primary btn-sm">
+                            <i class="bi bi-plus-circle me-1"></i> New Promo Code
+                        </a>
+                    </div>
+
+                    @if (TempData["PromoSuccess"] != null)
+                    {
+                        <div class="alert alert-success" id="promo-success-msg">
+                            @TempData["PromoSuccess"]
+                        </div>
+
+                        <script>
+                            setTimeout(function () {
+                                window.location.href = '@Url.Action("Index", "PromoCodes", new { area = "Pharmacy" })';
+                            }, 2000);
+                        </script>
+                    }
+
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Code</th>
+                                    <th>Discount %</th>
+                                    <th>Start</th>
+                                    <th>End</th>
+                                    <th>Active</th>
+                                    <th>Now Valid?</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (Model != null && Model.Any())
+                                {
+                                    foreach (var p in Model)
+                                    {
+                                        var nowValid = p.IsActive && DateTime.Now >= p.StartDateTime && DateTime.Now <= p.EndDateTime;
+                                        <tr>
+                                            <td>@p.Code</td>
+                                            <td>@p.DiscountPercent %</td>
+                                            <td>@p.StartDateTime.ToString("yyyy-MM-dd HH:mm")</td>
+                                            <td>@p.EndDateTime.ToString("yyyy-MM-dd HH:mm")</td>
+                                            <td>
+                                                @if (p.IsActive)
+                                                {
+                                                    <span class="badge bg-success">Active</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-secondary">Disabled</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                @if (nowValid)
+                                                {
+                                                    <span class="badge bg-primary">Currently Valid</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-light text-muted">Out of range</span>
+                                                }
+                                            </td>
+                                            <td class="text-end">
+                                                <a asp-area="Pharmacy"
+                                                   asp-controller="PromoCodes"
+                                                   asp-action="Edit"
+                                                   asp-route-id="@p.Id"
+                                                   class="btn btn-sm btn-outline-secondary">
+                                                    Edit
+                                                </a>
+
+                                                <form asp-area="Pharmacy"
+                                                      asp-controller="PromoCodes"
+                                                      asp-action="Delete"
+                                                      asp-route-id="@p.Id"
+                                                      method="post"
+                                                      class="d-inline"
+                                                      onsubmit="return confirm('Delete this promo code?');">
+                                                    @Html.AntiForgeryToken()
+                                                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                        Delete
+                                                    </button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    }
+                                }
+                                else
+                                {
+                                    <tr>
+                                        <td colspan="7" class="text-center text-muted">
+                                            No promo codes found.
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>

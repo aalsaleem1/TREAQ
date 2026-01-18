@@ -1,0 +1,99 @@
+﻿@model Traeq.Models.PharmacyPromoCode
+
+@{
+    ViewData["Title"] = "Create Promo Code";
+    Layout = "~/Views/Shared/DashBoardLayout.cshtml";
+}
+
+<div class="pagetitle">
+    <h1>Create Promo Code</h1>
+    <nav>
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+                <a asp-area="Pharmacy" asp-controller="Dashboard" asp-action="Index">Dashboard</a>
+            </li>
+            <li class="breadcrumb-item">
+                <a asp-area="Pharmacy" asp-controller="PromoCodes" asp-action="Index">Promo Codes</a>
+            </li>
+            <li class="breadcrumb-item active">Create</li>
+        </ol>
+    </nav>
+</div>
+
+<section class="section">
+    <div class="row">
+        <div class="col-lg-6">
+
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">New Promo Code</h5>
+
+                    @if (TempData["PromoSuccess"] != null)
+                    {
+                        <div class="alert alert-success" id="promo-success-msg">
+                            @TempData["PromoSuccess"]
+                        </div>
+
+                        <script>
+                            setTimeout(function () {
+                                window.location.href = '@Url.Action("Index", "PromoCodes", new { area = "Pharmacy" })';
+                            }, 2000);
+                        </script>
+                    }
+
+
+                    <form asp-area="Pharmacy"
+                          asp-controller="PromoCodes"
+                          asp-action="Create"
+                          method="post">
+                        @Html.AntiForgeryToken()
+
+                        <div class="mb-3">
+                            <label asp-for="Code" class="form-label"></label>
+                            <input asp-for="Code" class="form-control" />
+                            <span asp-validation-for="Code" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="DiscountPercent" class="form-label"></label>
+                            <input asp-for="DiscountPercent" class="form-control" type="number" min="1" max="100" />
+                            <span asp-validation-for="DiscountPercent" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="StartDateTime" class="form-label"></label>
+                            <input asp-for="StartDateTime"
+                                   class="form-control"
+                                   type="datetime-local"
+                                   value="@Model.StartDateTime.ToString("yyyy-MM-ddTHH:mm")" />
+                            <span asp-validation-for="StartDateTime" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="EndDateTime" class="form-label"></label>
+                            <input asp-for="EndDateTime"
+                                   class="form-control"
+                                   type="datetime-local"
+                                   value="@Model.EndDateTime.ToString("yyyy-MM-ddTHH:mm")" />
+                            <span asp-validation-for="EndDateTime" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-check form-switch mb-3">
+                            <input asp-for="IsActive" class="form-check-input" type="checkbox" />
+                            <label class="form-check-label" asp-for="IsActive"></label>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">Save</button>
+                        <a asp-area="Pharmacy" asp-controller="PromoCodes" asp-action="Index" class="btn btn-secondary ms-2">Cancel</a>
+                    </form>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

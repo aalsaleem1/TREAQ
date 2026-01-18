@@ -1,0 +1,87 @@
+﻿@model IEnumerable<Traeq.Models.PharmacySupportThread>
+
+@{
+    ViewData["Title"] = "My Messages";
+    Layout = "~/Views/Shared/DashBoardLayout.cshtml";
+}
+
+<div class="pagetitle">
+    <h1>Pharmacy Support Messages</h1>
+    <nav>
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+                <a asp-area="Pharmacy" asp-controller="Dashboard" asp-action="Index">Dashboard</a>
+            </li>
+            <li class="breadcrumb-item active">My Messages</li>
+        </ol>
+    </nav>
+</div>
+
+<section class="section">
+    <div class="row">
+        <div class="col-lg-12">
+
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Conversations with users</h5>
+
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Created</th>
+                                    <th scope="col">User</th>
+                                    <th scope="col">Order #</th>
+                                    <th scope="col">Status</th>
+                                    <th scope="col">Last Activity</th>
+                                    <th scope="col">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (Model != null && Model.Any())
+                                {
+                                    foreach (var t in Model)
+                                    {
+                                        var lastMsg = t.Messages?.OrderByDescending(m => m.SentAt).FirstOrDefault();
+                                        <tr>
+                                            <td>@t.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>
+                                            <td>@t.User?.FullName</td>
+                                            <td>@(t.OrderId.HasValue? t.OrderId.ToString() : "-")</td>
+                                            <td>
+                                                @if (t.IsClosed)
+                                                {
+                                                    <span class="badge bg-secondary">Closed</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-success">Open</span>
+                                                }
+                                            </td>
+                                            <td>@(lastMsg != null ? lastMsg.SentAt.ToString("yyyy-MM-dd HH:mm") : "-")</td>
+                                            <td>
+                                                <a asp-area="Pharmacy" asp-controller="Dashboard" asp-action="Chat" asp-route-threadId="@t.Id"
+                                                   class="btn btn-sm @(t.IsClosed ? "btn-outline-secondary" : "btn-primary")">
+                                                    @(t.IsClosed ? "View" : "Continue")
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    }
+                                }
+                                else
+                                {
+                                    <tr>
+                                        <td colspan="6" class="text-center text-muted">
+                                            No support messages yet.
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>

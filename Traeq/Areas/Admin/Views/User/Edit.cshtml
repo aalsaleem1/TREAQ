@@ -1,0 +1,150 @@
+﻿@using Traeq.DTO
+@model UserDTO
+
+@{
+    ViewData["Title"] = "Edit User";
+    Layout = "~/Views/Shared/DashBoardLayout.cshtml";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-warning text-dark">
+                    <h3 class="mb-0">Edit User</h3>
+                </div>
+
+                <div class="card-body">
+                    <form id="editUserForm">
+                        <input type="hidden" name="Id" value="@Model.Id" />
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Full Name</label>
+                                <input type="text" class="form-control" name="FullName" value="@Model.FullName" required />
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Username</label>
+                                <input type="text" class="form-control" name="UserName" value="@Model.UserName" required />
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Email</label>
+                                <input type="email" class="form-control" name="Email" value="@Model.Email" required />
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Phone</label>
+                                <input type="text" class="form-control" name="PhoneNumber" value="@Model.PhoneNumber" />
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">City</label>
+                                <input type="text" class="form-control" name="City" value="@Model.City" />
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">District</label>
+                                <input type="text" class="form-control" name="District" value="@Model.District" />
+                            </div>
+                        </div>
+
+                       
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Status</label>
+                                <select class="form-select" name="IsActive">
+                                    <option value="true" selected="@Model.IsActive">Active</option>
+                                    <option value="false" selected="@(!Model.IsActive)">Inactive</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div id="pharmacySection" style="display:@(Model.AccountType == "Pharmacy" ? "block" : "none")">
+                            <hr />
+                            <h5>Pharmacy Information</h5>
+
+                            <div class="mb-3">
+                                <label>Pharmacy Name</label>
+                                <input class="form-control" name="PharmacyName" value="@Model.PharmacyName" />
+                            </div>
+
+                            <div class="mb-3">
+                                <label>License Number</label>
+                                <input class="form-control" name="PharmacyLicense" value="@Model.PharmacyLicense" />
+                            </div>
+
+                            <div class="mb-3">
+                                <label>Owner Name</label>
+                                <input class="form-control" name="OwnerName" value="@Model.OwnerName" />
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">User Image</label>
+                                <input type="file" class="form-control" name="UserFile" />
+                                @if (!string.IsNullOrEmpty(Model.ImageUrl))
+                                {
+                                    <img src="~/@Model.ImageUrl" width="80" class="mt-2 rounded" />
+                                }
+                            </div>
+
+                            <div class="col-md-6 mb-3" id="pharmacyLogoSection"
+                                 style="display:@(Model.AccountType == "Pharmacy" ? "block" : "none")">
+                                <label class="form-label">Pharmacy Logo</label>
+                                <input type="file" class="form-control" name="LogoFile" />
+                                @if (!string.IsNullOrEmpty(Model.PharmacyLogoUrl))
+                                {
+                                    <img src="~/@Model.PharmacyLogoUrl" width="80" class="mt-2 rounded" />
+                                }
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between mt-4">
+                            <a asp-action="Index" class="btn btn-secondary">Back</a>
+                            <button type="submit" class="btn btn-success">Save Changes</button>
+                        </div>
+                    </form>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        $('#editUserForm').submit(function (e) {
+            e.preventDefault();
+
+            var formData = new FormData(this);
+
+            $.ajax({
+                url: '/Admin/User/Edit/@Model.Id',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function (res) {
+                    if (res && res.success) {
+                        Swal.fire('Success', res.message, 'success')
+                            .then(() => window.location.href = '/Admin/User/Index');
+                    } else {
+                        Swal.fire('Error', res && res.message ? res.message : 'An error occurred while saving.', 'error');
+                    }
+                },
+                error: function () {
+                    Swal.fire('Error', 'An error occurred while saving.', 'error');
+                }
+            });
+        });
+    </script>
+}
