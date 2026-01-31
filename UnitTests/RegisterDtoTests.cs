@@ -10,12 +10,13 @@ namespace Traeq.UnitTests
         {
             var dto = new RegisterDTO
             {
+                AccountType = "User",
                 Username = "Omar03",
                 FullName = "Omar Kamal",
                 Email = "omar@gmail.com",
                 Password = "Omar@2003",
                 ConfirmPassword = "Omar@2003",
-                AccountType = "User"
+                
             };
 
             var results = TestHelper.Validate(dto);
@@ -27,6 +28,7 @@ namespace Traeq.UnitTests
         {
             var dto = new RegisterDTO
             {
+                AccountType = "User",
                 Username = "Omar03",
                 FullName = "Omar",
                 Email = "omargmail.com",
@@ -43,6 +45,7 @@ namespace Traeq.UnitTests
         {
             var dto = new RegisterDTO
             {
+                AccountType="User",
                 Username = "Omar03",
                 FullName = "Omar",
                 Email = "omar@gmail.com",

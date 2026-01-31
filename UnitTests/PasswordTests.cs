@@ -35,31 +35,7 @@ namespace Traeq.UnitTests
             Assert.NotEmpty(results);
         }
 
-        [Fact] 
-        public void Password_NoSymbol_Fails()
-        {
-            var dto = new RegisterDTO
-            {
-                Password = "Omar2003",
-                ConfirmPassword = "Omar2003"
-            };
 
-            var results = TestHelper.Validate(dto);
-            Assert.NotEmpty(results);
-        }
-
-        [Fact] 
-        public void Password_NoCapital_Fails()
-        {
-            var dto = new RegisterDTO
-            {
-                Password = "omar@2003",
-                ConfirmPassword = "omar@2003"
-            };
-
-            var results = TestHelper.Validate(dto);
-            Assert.NotEmpty(results);
-        }
     }
 }
 

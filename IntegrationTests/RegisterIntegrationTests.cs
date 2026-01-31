@@ -19,6 +19,7 @@ namespace Traeq.IntegrationTests
 
             var form = new MultipartFormDataContent
             {
+                 {new StringContent("User"),"AccountType" },
                 { new StringContent("testuser01"), "Username" },
                 { new StringContent("Test User"), "FullName" },
                 { new StringContent("test01@gmail.com"), "Email" },
@@ -38,6 +39,7 @@ namespace Traeq.IntegrationTests
 
             var form = new MultipartFormDataContent
             {
+                 {new StringContent("User"),"AccountType" },
                 { new StringContent("testuser02"), "Username" },
                 { new StringContent("Test User"), "FullName" },
                 { new StringContent("Test@123"), "Password" },
@@ -56,6 +58,7 @@ namespace Traeq.IntegrationTests
 
             var form = new MultipartFormDataContent
             {
+                {new StringContent("User"),"AccountType" },
                 { new StringContent("testuser03"), "Username" },
                 { new StringContent("Test User"), "FullName" },
                 { new StringContent("test03@gmail.com"), "Email" },

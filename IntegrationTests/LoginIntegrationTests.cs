@@ -29,12 +29,12 @@ namespace Traeq.IntegrationTests
         }
 
         [Fact]
-        public async Task Login_InvalidPassword_ReturnsOk()
+        public async Task Login_InvalidUsernamePassword_ReturnsOk()
         {
             var client = CreateClient();
 
             var content = new StringContent(
-                "{\"username\":\"omar\",\"password\":\"wrongpass\"}",
+                "{\"username\":\"omar$$\",\"password\":\"Oma\"}",
                 Encoding.UTF8,
                 "application/json");
 

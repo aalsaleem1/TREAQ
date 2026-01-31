@@ -2,24 +2,27 @@
 using Microsoft.AspNetCore.Mvc.Testing;
 using Xunit;
 
-namespace Traeq.IntegrationTests
+namespace Traeq.ApiTests
 {
-    public class PromoCodeIntegrationTests
+    public class CheckoutApiTests
     {
         private HttpClient CreateClient()
         {
             var factory = new WebApplicationFactory<Program>();
             return factory.CreateClient();
         }
+
         [Fact]
-        public async Task Checkout_WithoutCart_RedirectsToCart()
+        public async Task GET_Checkout_Returns_Response()
         {
             var client = CreateClient();
 
             var response = await client.GetAsync("/Checkout");
 
-            Assert.True(response.StatusCode == HttpStatusCode.OK
-                     || response.StatusCode == HttpStatusCode.Redirect);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+
+         
         }
     }
 }
