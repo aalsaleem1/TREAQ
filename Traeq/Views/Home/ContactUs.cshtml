@@ -33,6 +33,54 @@
         </div>
 
         <div class="row">
+            <!-- Site / General Support -->
+
+            <div class="col-md-4 mb-4">
+                <div class="border p-4 h-100">
+                    <h4 class="text-black mb-3">Site / General Support</h4>
+                    <p class="text-muted">
+                        If you have an issue with the website or a general question, please fill in the form below.
+                    </p>
+
+                    <form asp-area="" asp-controller="Home" asp-action="ContactUs" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="supportType" value="site" />
+
+                        <div class="form-row">
+                            <div class="form-group col-md-6 mb-3">
+                                <label for="nameFirst" class="form-label">First Name</label>
+                                <input type="text" class="form-control" id="nameFirst" name="nameFirst" required />
+                            </div>
+                            <div class="form-group col-md-6 mb-3">
+                                <label for="nameLast" class="form-label">Last Name</label>
+                                <input type="text" class="form-control" id="nameLast" name="nameLast" />
+                            </div>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label for="email" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="email" name="email" required />
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label for="phone" class="form-label">Phone (optional)</label>
+                            <input type="text" class="form-control" id="phone" name="phone" />
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label for="subject" class="form-label">Subject</label>
+                            <input type="text" class="form-control" id="subject" name="subject" />
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label for="message" class="form-label">Message</label>
+                            <textarea class="form-control" id="message" name="message" rows="5" required></textarea>
+                        </div>
+
+                        <button type="submit" class="btn btn-success w-100">Send Message</button>
+                    </form>
+                </div>
+            </div>
             <!-- Order Support (Admin) -->
             <div class="col-md-4 mb-4">
                 <div class="border p-4 h-100">
@@ -112,53 +160,7 @@
                 </div>
             </div>
 
-            <!-- Site / General Support -->
-            <div class="col-md-4 mb-4">
-                <div class="border p-4 h-100">
-                    <h4 class="text-black mb-3">Site / General Support</h4>
-                    <p class="text-muted">
-                        If you have an issue with the website or a general question, please fill in the form below.
-                    </p>
-
-                    <form asp-area="" asp-controller="Home" asp-action="ContactUs" method="post">
-                        @Html.AntiForgeryToken()
-                        <input type="hidden" name="supportType" value="site" />
-
-                        <div class="form-row">
-                            <div class="form-group col-md-6 mb-3">
-                                <label for="nameFirst" class="form-label">First Name</label>
-                                <input type="text" class="form-control" id="nameFirst" name="nameFirst" required />
-                            </div>
-                            <div class="form-group col-md-6 mb-3">
-                                <label for="nameLast" class="form-label">Last Name</label>
-                                <input type="text" class="form-control" id="nameLast" name="nameLast" />
-                            </div>
-                        </div>
-
-                        <div class="form-group mb-3">
-                            <label for="email" class="form-label">Email</label>
-                            <input type="email" class="form-control" id="email" name="email" required />
-                        </div>
-
-                        <div class="form-group mb-3">
-                            <label for="phone" class="form-label">Phone (optional)</label>
-                            <input type="text" class="form-control" id="phone" name="phone" />
-                        </div>
-
-                        <div class="form-group mb-3">
-                            <label for="subject" class="form-label">Subject</label>
-                            <input type="text" class="form-control" id="subject" name="subject" />
-                        </div>
-
-                        <div class="form-group mb-3">
-                            <label for="message" class="form-label">Message</label>
-                            <textarea class="form-control" id="message" name="message" rows="5" required></textarea>
-                        </div>
-
-                        <button type="submit" class="btn btn-success w-100">Send Message</button>
-                    </form>
-                </div>
-            </div>
+            
         </div>
     </div>
 </div>
